@@ -1,7 +1,4 @@
 # Loom — Systems Diagram
-
-> Open VS Code preview: `Ctrl+Shift+V` (Win/Linux) or `Cmd+Shift+V` (Mac). Zoom: `Ctrl++` / `Ctrl+-`.
-
 ---
 
 ## Middleware position
