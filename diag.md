@@ -1,4 +1,4 @@
-# Conduit — Systems Diagram
+# Loom — Systems Diagram
 
 > Open VS Code preview: `Ctrl+Shift+V` (Win/Linux) or `Cmd+Shift+V` (Mac). Zoom: `Ctrl++` / `Ctrl+-`.
 
@@ -14,7 +14,7 @@ flowchart LR
     P4[Doc Search]
     P5[Sales Assistant]
 
-    CONDUIT[Conduit Framework]
+    LOOM[Loom Framework]
 
     V1[OpenAI]
     V2[Anthropic]
@@ -22,22 +22,22 @@ flowchart LR
     V4[BFL / Ideogram]
     V5[10+ more vendors]
 
-    P1 --> CONDUIT
-    P2 --> CONDUIT
-    P3 --> CONDUIT
-    P4 --> CONDUIT
-    P5 --> CONDUIT
+    P1 --> LOOM
+    P2 --> LOOM
+    P3 --> LOOM
+    P4 --> LOOM
+    P5 --> LOOM
 
-    CONDUIT --> V1
-    CONDUIT --> V2
-    CONDUIT --> V3
-    CONDUIT --> V4
-    CONDUIT --> V5
+    LOOM --> V1
+    LOOM --> V2
+    LOOM --> V3
+    LOOM --> V4
+    LOOM --> V5
 ```
 
 ---
 
-## What Conduit does internally
+## What Loom does internally
 
 ```mermaid
 flowchart LR
@@ -56,7 +56,7 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-    A[Projects send<br/>provider, model, prompt] --> B[Conduit adds<br/>keys, cache, routing, retries]
+    A[Projects send<br/>provider, model, prompt] --> B[Loom adds<br/>keys, cache, routing, retries]
     B --> C[Providers receive<br/>optimized call]
 ```
 
@@ -84,7 +84,7 @@ flowchart TB
 |---|---|
 | **One integration** | Projects learn one API instead of fourteen |
 | **Central optimization** | Caching, batching, routing — built once, savings everywhere |
-| **Vendor changes absorbed** | Update Conduit once instead of N project repos |
+| **Vendor changes absorbed** | Update Loom once instead of N project repos |
 | **Unified observability** | Real cost visibility per project, per model |
 | **Key safety** | API keys live in one place, not scattered across repos |
 | **Faster onboarding** | New AI projects ship in hours, not days |
