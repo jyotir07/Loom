@@ -1,4 +1,4 @@
-# Conduit
+# Loom
 
 *One API for every AI provider. Built once, used everywhere.*
 
@@ -8,13 +8,13 @@
 
 Every team that builds something with AI ends up writing the same plumbing: pick a provider, learn their SDK, manage their API keys, handle their errors, track their costs, repeat for the next provider. Multiply this across a dozen projects and the company is paying for the same integration work over and over — while still losing out on cost optimizations that no single project has the time to build.
 
-Conduit is a Python framework that sits between your projects and the AI providers. Projects make one kind of call. Conduit handles the rest: which vendor, which model, which SDK, which retry policy, which cache, which batch endpoint. The provider list grows in one place. The optimizations land in one place. Every project benefits the moment they upgrade.
+Loom is a Python framework that sits between your projects and the AI providers. Projects make one kind of call. Loom handles the rest: which vendor, which model, which SDK, which retry policy, which cache, which batch endpoint. The provider list grows in one place. The optimizations land in one place. Every project benefits the moment they upgrade.
 
 It is not an aggregator. Each vendor is integrated with its own native SDK so vendor-specific features (prompt caching, grounding, image polling, streaming, structured output) are preserved instead of flattened to a lowest common denominator.
 
 ## What problem it solves
 
-In a typical org without something like Conduit:
+In a typical org without something like Loom:
 
 - **Every project re-integrates the same vendors.** Five projects calling OpenAI means five sets of retry logic, five places where the key lives, five different ways of handling rate limits.
 - **Switching models requires a code change in each project.** When a cheaper model launches, or a vendor deprecates a model ID, somebody has to file PRs across every repo.
@@ -23,16 +23,16 @@ In a typical org without something like Conduit:
 - **There's no unified view of cost.** Finance asks "what are we spending on AI?" and the answer is "we'll get back to you."
 - **Vendor breaking changes hurt N times.** When a provider changes their response shape, every consuming project breaks.
 
-Conduit collapses all of this into one library.
+Loom collapses all of this into one library.
 
-## What Conduit provides
+## What Loom provides
 
 ### A single, stable contract
 
 Every call goes through one function:
 
 ```python
-from conduit import generate
+from loom import generate
 
 result = generate(
     provider="anthropic",
@@ -56,7 +56,7 @@ Sync and async both supported. Type-hinted responses available for IDE autocompl
 
 ### A pluggable provider registry
 
-Conduit ships with 14+ providers wired up:
+Loom ships with 14+ providers wired up:
 
 - **Text and image:** OpenAI, Google Gemini
 - **Text only:** Anthropic, xAI (Grok), Mistral, DeepSeek, MiniMax, Z.AI (GLM), Perplexity, Together AI
@@ -78,12 +78,12 @@ Adding a new model is a one-line catalog entry. The catalog can be backed by an 
 
 ### A cost optimization layer
 
-This is where Conduit pays for itself. These optimizations are built once, in the framework, and every consuming project inherits them on upgrade.
+This is where Loom pays for itself. These optimizations are built once, in the framework, and every consuming project inherits them on upgrade.
 
 - **Response caching.** Identical `(provider, model, prompt, params)` calls hit a cache instead of the API. Realistic savings of 20–60% on workloads with repeated queries.
-- **Vendor-native prompt caching.** Anthropic, OpenAI, Gemini, and DeepSeek all offer 50–90% discounts on cached prefix tokens. Conduit wires this up automatically for repeated system prompts and few-shot examples.
+- **Vendor-native prompt caching.** Anthropic, OpenAI, Gemini, and DeepSeek all offer 50–90% discounts on cached prefix tokens. Loom wires this up automatically for repeated system prompts and few-shot examples.
 - **Smart model routing.** Try a cheap model first (Haiku, GPT-4o-mini, Gemini Flash); escalate to expensive ones only when confidence is low or validation fails. Realistic savings of 50–80% on mixed workloads.
-- **Batch API usage.** OpenAI, Anthropic, and Gemini all offer 50% discounts on batch endpoints with 24-hour turnaround. Conduit can auto-batch non-urgent calls.
+- **Batch API usage.** OpenAI, Anthropic, and Gemini all offer 50% discounts on batch endpoints with 24-hour turnaround. Loom can auto-batch non-urgent calls.
 - **Centralized retry and failover.** Exponential backoff done correctly once. If one vendor is down or rate-limited, fall back to an equivalent model on another vendor instead of failing.
 - **Request deduplication.** When the same call fires from multiple places within a short window, collapse to one upstream request.
 
@@ -91,7 +91,7 @@ These numbers are ceilings, not guarantees — actual savings depend on workload
 
 ### Centralized key management
 
-API keys live in one place — the Conduit deployment — not in each consuming project's repo or environment. Projects authenticate to Conduit with their own credentials and never see vendor keys.
+API keys live in one place — the Loom deployment — not in each consuming project's repo or environment. Projects authenticate to Loom with their own credentials and never see vendor keys.
 
 ### Observability
 
@@ -99,7 +99,7 @@ Every call is logged with provider, model, latency, token counts, and cost (in b
 
 ## Architecture
 
-### Where Conduit sits
+### Where Loom sits
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -110,7 +110,7 @@ Every call is logged with provider, model, latency, token counts, and cost (in b
                            │  generate(provider, model, prompt)
                            ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                         Conduit                             │
+│                         Loom                             │
 │                                                             │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐          │
 │  │ Auth + keys │  │    Cache    │  │   Router    │          │
@@ -137,22 +137,22 @@ Every call is logged with provider, model, latency, token counts, and cost (in b
 2. **Optimization layer.** Cache, router, batcher, retry, dedup, logging. Each is independently toggleable per call.
 3. **Core services.** Catalog (what models exist), provider registry (who knows how to call them), observability (what happened).
 4. **Provider adapters.** One module per vendor. OpenAI-compatible vendors share a single ~12-line adapter; native-SDK vendors get their own module.
-5. **Upstream.** The actual vendor APIs. Out of our control, but their churn is absorbed inside Conduit.
+5. **Upstream.** The actual vendor APIs. Out of our control, but their churn is absorbed inside Loom.
 
 ## Integration
 
 ### Installation
 
 ```bash
-pip install conduit
+pip install loom
 ```
 
 ### Minimum viable usage
 
 ```python
-from conduit import Conduit
+from loom import Loom
 
-c = Conduit.from_env()  # picks up keys from environment variables
+c = Loom.from_env()  # picks up keys from environment variables
 
 response = c.generate(
     provider="anthropic",
@@ -168,7 +168,7 @@ print(response["text"])
 For projects that don't want to use environment variables:
 
 ```python
-from conduit import Conduit, Catalog
+from loom import Loom, Catalog
 
 catalog = Catalog()
 catalog.register_model(
@@ -179,7 +179,7 @@ catalog.register_model(
     output_cost_per_1m=10.00,
 )
 
-c = Conduit(
+c = Loom(
     catalog=catalog,
     api_keys={"openai": "sk-...", "anthropic": "sk-ant-..."},
     cache_backend="redis://localhost:6379",
@@ -190,10 +190,10 @@ c = Conduit(
 
 ```python
 import asyncio
-from conduit import Conduit
+from loom import Loom
 
 async def main():
-    c = Conduit.from_env()
+    c = Loom.from_env()
     response = await c.agenerate(
         provider="gemini",
         model="gemini-2.5-pro",
@@ -230,7 +230,7 @@ Register it once in `providers/__init__.py` and it's available everywhere.
 
 ### Framework-agnostic by design
 
-Conduit doesn't care what's calling it. It works inside:
+Loom doesn't care what's calling it. It works inside:
 
 - Flask, FastAPI, or Django apps
 - Celery workers and background jobs
@@ -238,20 +238,20 @@ Conduit doesn't care what's calling it. It works inside:
 - Jupyter notebooks
 - AWS Lambda or other serverless runtimes
 
-There is no web framework lock-in. Conduit is a library, not a service — though it can be deployed as a service if a team wants to centralize it behind an internal HTTP API.
+There is no web framework lock-in. Loom is a library, not a service — though it can be deployed as a service if a team wants to centralize it behind an internal HTTP API.
 
 ## Migration path for existing projects
 
-Conduit is designed for incremental adoption. A project doesn't have to rewrite anything to start using it.
+Loom is designed for incremental adoption. A project doesn't have to rewrite anything to start using it.
 
 **Step 1 — Install and replace the simplest call site.**
-Pick one place where the project currently calls a vendor SDK directly. Replace that call with `conduit.generate(...)`. Ship it. Verify cost logging shows up in the dashboard.
+Pick one place where the project currently calls a vendor SDK directly. Replace that call with `loom.generate(...)`. Ship it. Verify cost logging shows up in the dashboard.
 
 **Step 2 — Migrate the remaining call sites at the team's own pace.**
-There's no "big bang" cutover. Old direct-SDK calls and new Conduit calls coexist fine.
+There's no "big bang" cutover. Old direct-SDK calls and new Loom calls coexist fine.
 
 **Step 3 — Remove vendor SDKs from the project's dependencies.**
-Once all call sites are migrated, the project can drop `openai`, `anthropic`, `google-genai`, etc. from its requirements. Conduit owns those dependencies now.
+Once all call sites are migrated, the project can drop `openai`, `anthropic`, `google-genai`, etc. from its requirements. Loom owns those dependencies now.
 
 **Step 4 — Opt into optimization features.**
 Enable caching, smart routing, or batching per-call or globally. These are off by default to preserve exact behavior during migration, then turned on once the team is comfortable.
@@ -285,7 +285,7 @@ For **the org**:
 
 ## Status
 
-Conduit is built on top of the existing Models Catalog project, which already has the provider abstraction, native SDK adapters, unified catalog, and `generate(...)` contract working in production. The remaining work is packaging it as an installable library, extracting the engine from the Flask app, adding the optimization layer, and writing documentation.
+Loom is built on top of the existing Models Catalog project, which already has the provider abstraction, native SDK adapters, unified catalog, and `generate(...)` contract working in production. The remaining work is packaging it as an installable library, extracting the engine from the Flask app, adding the optimization layer, and writing documentation.
 
 Estimated timeline:
 
