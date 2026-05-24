@@ -1,0 +1,10 @@
+flask>=3.0.0
+python-dotenv>=1.0.0
+requests>=2.31.0
+psycopg2-binary>=2.9.9
+
+# Native SDKs per provider
+openai>=1.50.0                  # used by openai + Mistral, DeepSeek, xAI, MiniMax, Z.AI (compatible APIs)
+google-genai>=0.3.0
+anthropic>=0.39.0
+tencentcloud-sdk-python>=3.0.1200

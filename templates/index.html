@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Multi-provider AI demo</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+  <main class="app">
+    <header class="app-header">
+      <div>
+        <h1>Multi-provider AI demo</h1>
+        <p class="subtitle">Pick a provider, pick a modality, pick a model, and run a prompt.</p>
+      </div>
+      <div class="header-actions">
+        <button type="button" id="add-model-btn" class="secondary-btn">+ Add model</button>
+        <a href="{{ url_for('logout') }}" class="logout-link">Log out</a>
+      </div>
+    </header>
+
+    <div class="workspace">
+      <div class="workspace-left">
+        <section class="controls">
+
+          <div class="field">
+            <label for="modality">Type</label>
+            <select id="modality">
+              <option value="all">All</option>
+              <option value="text">Text</option>
+              <option value="image">Image</option>
+              <option value="video">Video</option>
+            </select>
+          </div>
+            <div class="field">
+            <label for="provider">Provider</label>
+            <select id="provider"></select>
+          </div>
+          <div class="field grow">
+            <label for="model">Model</label>
+            <div class="model-dropdown" id="model-dropdown">
+              <button type="button" class="dropdown-trigger" id="model-trigger" aria-haspopup="listbox" aria-expanded="false">
+                <span class="dropdown-trigger-label" id="model-trigger-label"></span>
+                <span class="dropdown-arrow" aria-hidden="true">&#9662;</span>
+              </button>
+              <ul class="dropdown-menu" id="model-menu" role="listbox" hidden></ul>
+            </div>
+            <select id="model" hidden></select>
+          </div>
+        </section>
+
+        <section class="prompt-area">
+          <label for="prompt">Prompt</label>
+          <textarea id="prompt" rows="6" placeholder="Describe what you want..."></textarea>
+          <div class="actions">
+            <button id="run">Generate</button>
+            <span id="status" class="status"></span>
+          </div>
+        </section>
+
+        <section id="output" class="output" hidden></section>
+      </div>
+
+      <div class="workspace-right">
+        <section class="code-preview">
+          <div class="code-header">
+            <span class="code-title">Generate function</span>
+            <span class="code-filename" id="code-filename"></span>
+          </div>
+          <pre class="code-block"><code id="code-content">Select a provider and modality to see the code.</code></pre>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <div id="add-model-modal" class="modal" hidden>
+    <div class="modal-overlay" data-close-modal></div>
+    <div class="modal-panel" role="dialog" aria-labelledby="add-model-title">
+      <header class="modal-header">
+        <h2 id="add-model-title">Add a new model</h2>
+        <button type="button" class="modal-close" data-close-modal aria-label="Close">&times;</button>
+      </header>
+      <form id="add-model-form" class="modal-form">
+        <div class="field">
+          <label for="am-provider-key">Provider key</label>
+          <input id="am-provider-key" name="provider_key" required
+                 pattern="[a-z][a-z0-9_]*"
+                 placeholder="lowercase, e.g. cohere" />
+          <small class="hint">Used as the dict key and file prefix (providers/&lt;key&gt;_provider.py).</small>
+        </div>
+        <div class="field">
+          <label for="am-provider-label">Provider display name</label>
+          <input id="am-provider-label" name="provider_label" required
+                 placeholder="e.g. Cohere" />
+        </div>
+        <div class="field">
+          <label for="am-model-id">Model ID</label>
+          <input id="am-model-id" name="model_id" required
+                 placeholder="e.g. command-r-plus" />
+        </div>
+        <div class="field">
+          <label for="am-model-name">Model display name (optional)</label>
+          <input id="am-model-name" name="model_name"
+                 placeholder="defaults to model ID" />
+        </div>
+        <div class="field">
+          <label for="am-modality">Type</label>
+          <select id="am-modality" name="modality" required>
+            <option value="text">Text</option>
+            <option value="image">Image</option>
+            <option value="video">Video</option>
+          </select>
+        </div>
+        <p id="am-status" class="status"></p>
+        <div class="modal-actions">
+          <button type="button" class="ghost-btn" data-close-modal>Cancel</button>
+          <button type="submit" id="am-submit">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
