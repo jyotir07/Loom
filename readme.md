@@ -110,7 +110,7 @@ Every call is logged with provider, model, latency, token counts, and cost (in b
                            │  generate(provider, model, prompt)
                            ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                         Loom                             │
+│                         Loom                                │
 │                                                             │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐          │
 │  │ Auth + keys │  │    Cache    │  │   Router    │          │
