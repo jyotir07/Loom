@@ -5,5 +5,5 @@ venv/
 .venv/
 .idea/
 .vscode/
-
+docs/roadmap.md
 PROJECT_CONTEXT.txt
