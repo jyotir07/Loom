@@ -1,0 +1,48 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "loom"
+version = "0.1.0"
+description = "One contract for every AI vendor. Native SDKs preserved; keys, cost, retries, and routing centralised."
+readme = "readme.md"
+requires-python = ">=3.10"
+authors = [{ name = "Eyas Ventures" }]
+license = { text = "Proprietary" }
+keywords = ["llm", "ai", "openai", "anthropic", "gemini", "router"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+dependencies = [
+    "python-dotenv>=1.0.0",
+    "requests>=2.31.0",
+]
+
+[project.optional-dependencies]
+openai = ["openai>=1.50.0"]
+anthropic = ["anthropic>=0.39.0"]
+gemini = ["google-genai>=0.3.0"]
+tencent = ["tencentcloud-sdk-python>=3.0.1200"]
+all = [
+    "openai>=1.50.0",
+    "anthropic>=0.39.0",
+    "google-genai>=0.3.0",
+    "tencentcloud-sdk-python>=3.0.1200",
+]
+dev = [
+    "pytest>=8.0",
+    "pytest-mock>=3.12",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["loom*"]
+exclude = ["tests*", "templates*", "static*", "docs*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
