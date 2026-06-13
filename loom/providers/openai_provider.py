@@ -33,6 +33,25 @@ def _async_client():
     return AsyncOpenAI(api_key=require_env("OPENAI_API_KEY"))
 
 
+def _openai_usage(resp: Any) -> dict[str, int] | None:
+    """Pull usage + cached_tokens from an OpenAI chat completions response."""
+    usage = getattr(resp, "usage", None)
+    if usage is None:
+        return None
+    out: dict[str, int] = {
+        "input_tokens": int(getattr(usage, "prompt_tokens", 0) or 0),
+        "output_tokens": int(getattr(usage, "completion_tokens", 0) or 0),
+        "total_tokens": int(getattr(usage, "total_tokens", 0) or 0),
+    }
+    details = getattr(usage, "prompt_tokens_details", None)
+    cached = 0
+    if details is not None:
+        cached = int(getattr(details, "cached_tokens", 0) or 0)
+    if cached > 0:
+        out["cached_tokens"] = cached
+    return out
+
+
 def _text(model: str, params: dict[str, Any], prompt: str) -> dict[str, Any]:
     resp = _client().chat.completions.create(
         model=model,
@@ -40,13 +59,9 @@ def _text(model: str, params: dict[str, Any], prompt: str) -> dict[str, Any]:
         **params,
     )
     out = text_response(resp.choices[0].message.content or "")
-    usage = getattr(resp, "usage", None)
+    usage = _openai_usage(resp)
     if usage is not None:
-        out["usage"] = {
-            "input_tokens": int(getattr(usage, "prompt_tokens", 0) or 0),
-            "output_tokens": int(getattr(usage, "completion_tokens", 0) or 0),
-            "total_tokens": int(getattr(usage, "total_tokens", 0) or 0),
-        }
+        out["usage"] = usage
     return out
 
 
@@ -83,13 +98,9 @@ async def _atext(model: str, params: dict[str, Any], prompt: str) -> dict[str, A
         **params,
     )
     out = text_response(resp.choices[0].message.content or "")
-    usage = getattr(resp, "usage", None)
+    usage = _openai_usage(resp)
     if usage is not None:
-        out["usage"] = {
-            "input_tokens": int(getattr(usage, "prompt_tokens", 0) or 0),
-            "output_tokens": int(getattr(usage, "completion_tokens", 0) or 0),
-            "total_tokens": int(getattr(usage, "total_tokens", 0) or 0),
-        }
+        out["usage"] = usage
     return out
 
 

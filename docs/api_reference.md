@@ -368,6 +368,74 @@ For each `generate(...)` call:
 5. On success: enrich, **fill cache**, notify any waiters, log INFO.
 6. On failure: notify waiters with the error, log WARNING, re-raise.
 
+### Vendor-native prompt caching
+
+Repeated system prompts and few-shot prefixes can be cached on the
+vendor's side at a steep discount (50% off on OpenAI, 90% off on
+Anthropic / DeepSeek cache reads). Loom surfaces cached-token telemetry
+and applies the vendor discount in `cost` automatically.
+
+**Automatic** — OpenAI and DeepSeek cache eligible prompt prefixes
+without any opt-in. Loom reads the vendor's `cached_tokens` field and
+discounts cost accordingly. You'll see it on responses with no code change:
+
+```python
+result = loom.generate(
+    provider="openai", modality="text", model="gpt-4o-mini",
+    prompt=very_long_repeated_prompt,
+)
+result["usage"]["cached_tokens"]   # how many input tokens hit the cache
+result["cost"]["usd"]              # already discounted for cached tokens
+```
+
+**Explicit (Anthropic)** — caller marks which prompt segments are
+cacheable. Two convenience knobs:
+
+```python
+result = loom.generate(
+    provider="anthropic", modality="text", model="claude-haiku-4-5",
+    prompt="<the small, varying part>",
+    params={
+        "system": "<the long static system prompt>",
+        "cache_system": True,        # wrap `system` in cache_control
+        # "cache_user": True,        # wrap the user message too
+    },
+)
+result["usage"]["cached_tokens"]            # 0 on cache write, >0 on subsequent calls
+result["usage"]["cache_creation_tokens"]    # >0 on the first call that creates the cache
+```
+
+For finer control (multi-block prompts, partial caching, etc.) pass
+`system` as a list of Anthropic blocks directly — Loom forwards it
+verbatim:
+
+```python
+params = {
+    "system": [
+        {"type": "text", "text": "...static...",
+         "cache_control": {"type": "ephemeral"}},
+        {"type": "text", "text": "...dynamic..."},
+    ],
+}
+```
+
+**Pricing notes** — `cost` reflects each token bucket at its true rate:
+
+| Provider  | cached_tokens rate | cache_creation_tokens rate |
+|-----------|--------------------|-----------------------------|
+| OpenAI    | 50% of input rate  | n/a (writes are free)       |
+| Anthropic | 10% of input rate  | 125% of input rate          |
+| DeepSeek  | 10% of input rate  | n/a (writes are free)       |
+| Gemini    | 25% (not wired)    | n/a                         |
+
+For Anthropic, the first call to a prompt charges `cache_creation_tokens`
+at 1.25× — but subsequent calls within the cache TTL pay 0.1× on the
+cached portion. Break-even is hit at ~2 reads.
+
+Gemini's `CachedContent` resource API is on the Phase 3 backlog — it's
+a different shape (cache resources live independently of calls) and
+needs a separate API surface.
+
 ### Batch API
 
 For workloads that can wait (offline jobs, overnight analytics,
@@ -436,7 +504,8 @@ and Gemini follow the same protocol and register in
 
 The roadmap items not yet implemented in this branch:
 
-- **Vendor-native prompt caching** (Anthropic / OpenAI / Gemini / DeepSeek headers)
+- **Gemini context caching** (`CachedContent` resource API — different shape
+  from header/block-based caching; needs its own surface)
 - **Smart model routing** (cheap-first with confidence-driven escalation)
 - **Batch API: more vendors** (Anthropic and Gemini batch adapters —
   OpenAI is wired up)

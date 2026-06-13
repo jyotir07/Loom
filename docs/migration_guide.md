@@ -265,6 +265,29 @@ flow + the list of items still pending in Phase 3 (vendor prompt
 caching, smart routing, more batch adapters, cross-vendor failover,
 observability dashboard, vault integration).
 
+### Prompt caching
+
+OpenAI and DeepSeek cache long prompt prefixes automatically — Loom
+surfaces the saving in `result["usage"]["cached_tokens"]` and discounts
+the `result["cost"]` already. No code change.
+
+Anthropic is opt-in. If you have a long, repeated system prompt
+(few-shot examples, retrieval context, persona), turn on `cache_system`:
+
+```python
+loom.generate(
+    provider="anthropic", modality="text", model="claude-haiku-4-5",
+    prompt=user_question,
+    params={
+        "system": LONG_STATIC_SYSTEM_PROMPT,
+        "cache_system": True,
+    },
+)
+```
+
+The first call writes the cache (small premium); calls within the cache
+TTL pay ~10% of normal on the cached portion. Break-even is ~2 reads.
+
 ### Bulk / overnight jobs — use the Batch API
 
 For workloads that can tolerate ~24h latency, OpenAI's batch endpoint
