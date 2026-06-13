@@ -6,8 +6,10 @@ is just routes + a login wall + a small bit of introspection for the
 UI's "view source" button.
 """
 
+import importlib
 import inspect
 import os
+import re
 from pathlib import Path
 
 from flask import (
@@ -24,6 +26,8 @@ import loom
 from loom import providers as loom_providers
 from loom.catalog import CATALOG
 from loom.errors import LoomError, ModelNotFoundError, ProviderError
+
+import app_patch
 
 # Load .env from the directory next to this file regardless of CWD,
 # and override pre-existing env so edits to .env take effect after a restart.
@@ -216,18 +220,202 @@ def generate():
         return jsonify({"error": f"{type(err).__name__}: {err}"}), 500
 
 
+PROVIDER_KEY_RE = re.compile(r"^[a-z][a-z0-9_]*$")
+VALID_MODALITIES = {"text", "image", "video"}
+
+PROJECT_ROOT = Path(__file__).parent
+CATALOG_DATA_PATH = PROJECT_ROOT / "loom" / "catalog" / "_data.py"
+PROVIDERS_DIR = PROJECT_ROOT / "loom" / "providers"
+PROVIDERS_INIT_PATH = PROVIDERS_DIR / "__init__.py"
+
+
 @app.post("/models_catelog/api/models/add")
 def add_model():
-    # The runtime add-model flow (DB upsert + catalog patcher + codegen) is
-    # being reworked for the package layout — tracked under Phase 2.
-    # For now the catalog is editable by hand in loom/catalog/_data.py.
+    """Runtime add-model: DB upsert + catalog patch + (if new) codegen.
+
+    Body (JSON):
+        provider_key:     str (matches ^[a-z][a-z0-9_]*$)
+        provider_label:   str
+        modality:         "text" | "image" | "video"
+        model_id:         str
+        model_name:       str (defaults to model_id)
+        upstream_model:   str | None
+        params:           dict | None
+        input_inr_per_1m: float | None
+        output_inr_per_1m: float | None
+        cost_inr:         float | None
+        is_free:          bool
+
+    For a brand-new provider, also generates loom/providers/<key>_provider.py
+    using the OpenAI-compatible template and registers it in the _LAZY
+    registry.
+    """
+    payload = request.get_json(silent=True) or {}
+    provider_key = (payload.get("provider_key") or "").strip().lower()
+    provider_label = (payload.get("provider_label") or "").strip()
+    modality = (payload.get("modality") or "").strip().lower()
+    model_id = (payload.get("model_id") or "").strip()
+    model_name = (payload.get("model_name") or "").strip() or model_id
+    upstream_model = (payload.get("upstream_model") or "").strip() or None
+    params = payload.get("params") or None
+    input_rate = payload.get("input_inr_per_1m")
+    output_rate = payload.get("output_inr_per_1m")
+    image_cost = payload.get("cost_inr")
+    is_free = bool(payload.get("is_free") or False)
+    base_url = (payload.get("base_url") or "").strip() or None
+    api_key_env = (payload.get("api_key_env") or "").strip() or None
+
+    if not PROVIDER_KEY_RE.match(provider_key):
+        return jsonify({"error": "provider_key must match ^[a-z][a-z0-9_]*$"}), 400
+    if not provider_label:
+        return jsonify({"error": "provider_label is required"}), 400
+    if not model_id:
+        return jsonify({"error": "model_id is required"}), 400
+    if modality not in VALID_MODALITIES:
+        return jsonify({"error": f"modality must be one of {sorted(VALID_MODALITIES)}"}), 400
+
+    is_new_provider = provider_key not in loom_providers._LAZY  # noqa: SLF001
+    target_provider_file = PROVIDERS_DIR / f"{provider_key}_provider.py"
+    if is_new_provider and target_provider_file.exists():
+        return jsonify({
+            "error": (
+                f"loom/providers/{provider_key}_provider.py already exists on "
+                "disk but isn't registered. Delete it or pick a different "
+                "provider_key."
+            ),
+        }), 409
+
+    # Step 1: DB upsert (best-effort — log a soft error if Postgres isn't reachable).
+    db_status: dict = {"ok": False, "error": None}
+    try:
+        import seed_db
+
+        seed_db.upsert_one(
+            provider_key=provider_key,
+            provider_label=provider_label,
+            model_id=model_id,
+            model_name=model_name,
+            modality=modality,
+            upstream_model=upstream_model,
+            params=params,
+            input_inr_per_1m=input_rate,
+            output_inr_per_1m=output_rate,
+            cost_inr=image_cost,
+            is_free=is_free,
+        )
+        db_status["ok"] = True
+    except Exception as err:  # noqa: BLE001 — Postgres may not be configured locally
+        db_status["error"] = f"{type(err).__name__}: {err}"
+
+    # Step 2: Patch loom/catalog/_data.py.
+    try:
+        catalog_status = app_patch.add_catalog_entry(
+            CATALOG_DATA_PATH,
+            provider_key=provider_key,
+            provider_label=provider_label,
+            modality=modality,
+            model_id=model_id,
+            model_name=model_name,
+            upstream_model=upstream_model,
+            params=params,
+            input_inr_per_1m=input_rate,
+            output_inr_per_1m=output_rate,
+            cost_inr=image_cost,
+            is_free=is_free,
+        )
+    except Exception as err:  # noqa: BLE001
+        return jsonify({
+            "stage": "catalog",
+            "db": db_status,
+            "error": f"{type(err).__name__}: {err}",
+        }), 500
+
+    created_file: str | None = None
+    registry_status: str | None = None
+
+    if is_new_provider:
+        # Step 3: codegen a starter provider module.
+        try:
+            source = app_patch.generate_provider_source(
+                provider_key=provider_key,
+                provider_label=provider_label,
+                base_url=base_url or "https://api.example.com/v1",
+                api_key_env=api_key_env,
+            )
+            target_provider_file.write_text(source, encoding="utf-8")
+            created_file = f"loom/providers/{provider_key}_provider.py"
+        except Exception as err:  # noqa: BLE001
+            _safe_rollback(provider_key, modality, model_id)
+            return jsonify({
+                "stage": "codegen",
+                "db": db_status,
+                "error": f"{type(err).__name__}: {err}",
+            }), 500
+
+        # Step 4: register in _LAZY.
+        try:
+            registry_status = app_patch.add_provider_to_registry(
+                PROVIDERS_INIT_PATH,
+                provider_key=provider_key,
+                module_path=f"loom.providers.{provider_key}_provider",
+            )
+        except Exception as err:  # noqa: BLE001
+            try:
+                target_provider_file.unlink()
+            except OSError:
+                pass
+            _safe_rollback(provider_key, modality, model_id)
+            return jsonify({
+                "stage": "registry",
+                "db": db_status,
+                "error": f"{type(err).__name__}: {err}",
+            }), 500
+
+    # Step 5: best-effort in-process refresh.
+    _reload_loom_modules()
+
     return jsonify({
-        "error": (
-            "the runtime add-model endpoint is being reworked for the loom "
-            "package layout and will return in Phase 2. Edit "
-            "loom/catalog/_data.py directly to add models in the meantime."
-        ),
-    }), 503
+        "ok": True,
+        "provider_key": provider_key,
+        "model_id": model_id,
+        "modality": modality,
+        "db": db_status,
+        "catalog": catalog_status,
+        "registry": registry_status,
+        "created_file": created_file,
+    })
+
+
+def _safe_rollback(provider_key: str, modality: str, model_id: str) -> None:
+    try:
+        app_patch.rollback_catalog_entry(
+            CATALOG_DATA_PATH,
+            provider_key=provider_key,
+            modality=modality,
+            model_id=model_id,
+        )
+    except Exception:  # noqa: BLE001 — best effort
+        pass
+
+
+def _reload_loom_modules() -> None:
+    """Re-import the catalog data + provider registry so this process sees the edits."""
+    try:
+        import loom.catalog._data as _data_mod
+        import loom.catalog._catalog as _catalog_mod
+        import loom.catalog as _catalog_pkg
+        import loom.providers as _providers_pkg
+
+        importlib.reload(_data_mod)
+        importlib.reload(_catalog_mod)
+        importlib.reload(_catalog_pkg)
+        importlib.reload(_providers_pkg)
+        # Rebuild this app's client + the module-level CATALOG binding.
+        global _client, CATALOG
+        _client = loom.Loom.from_env()
+        CATALOG = _catalog_pkg.CATALOG
+    except Exception:  # noqa: BLE001 — debug reloader will resync next request
+        pass
 
 
 if __name__ == "__main__":
