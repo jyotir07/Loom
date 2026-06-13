@@ -2,17 +2,20 @@
 
 Each provider module under loom/providers/ exposes:
 
-    def generate(modality: str, model: str, params: dict, prompt: str) -> dict
+    def generate(modality, model, params, prompt) -> dict
+    async def agenerate(modality, model, params, prompt) -> dict   # optional
 
-REGISTRY maps the catalog provider key to the module. `generate()`
-here is the dispatcher — Loom.generate() and loom.generate() both
-funnel through it.
+`_LAZY` maps the catalog provider key to the import path. Modules are
+imported on first use so `import loom` doesn't drag every vendor SDK
+into memory.
 
-Phase 1 implements `openai` end-to-end (text + image) for the smoke
-tests. The shared `_openai_compatible` helper is wired up so OpenAI-
-shaped vendors (mistral, deepseek, xai, minimax, zhipu, perplexity,
-together, seedream) only need a thin wrapper that points at the right
-base URL — those wrappers land as the catalog needs them.
+Async dispatch prefers a provider's native `agenerate(...)` when
+present; otherwise the sync function is run in a thread via
+asyncio.to_thread so the AsyncLoom contract is preserved.
+
+OpenAI-shaped vendors (mistral, deepseek, xai, minimax, zhipu,
+perplexity, together, moonshot/kimi, seedream-image) share the
+adapter in `_openai_compatible.py`.
 """
 
 from __future__ import annotations
@@ -27,7 +30,22 @@ from loom.errors import ProviderError
 # Lazy-loaded so importing `loom` doesn't drag every vendor SDK into
 # memory. Keys here are the catalog provider keys.
 _LAZY: dict[str, str] = {
-    "openai": "loom.providers.openai_provider",
+    "openai":     "loom.providers.openai_provider",
+    "anthropic":  "loom.providers.anthropic_provider",
+    "gemini":     "loom.providers.gemini_provider",
+    "xai":        "loom.providers.xai_provider",
+    "mistral":    "loom.providers.mistral_provider",
+    "deepseek":   "loom.providers.deepseek_provider",
+    "minimax":    "loom.providers.minimax_provider",
+    "zhipu":      "loom.providers.zhipu_provider",
+    "perplexity": "loom.providers.perplexity_provider",
+    "together":   "loom.providers.together_provider",
+    "kimi":       "loom.providers.moonshot_provider",
+    "moonshot":   "loom.providers.moonshot_provider",
+    "bfl":        "loom.providers.bfl_provider",
+    "seedream":   "loom.providers.seedream_provider",
+    "hunyuan":    "loom.providers.hunyuan_provider",
+    "ideogram":   "loom.providers.ideogram_provider",
 }
 
 _LOADED: dict[str, ModuleType] = {}

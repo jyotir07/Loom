@@ -29,14 +29,26 @@ def test_unknown_provider_raises_model_not_found():
         )
 
 
-def test_unregistered_provider_raises_provider_error():
-    # Anthropic is in the catalog but has no Loom adapter in Phase 1.
-    client = Loom.from_env()
+def test_unregistered_provider_raises_provider_error(monkeypatch):
+    """A provider in the catalog but with no registered adapter should
+    raise ProviderError at dispatch time."""
+    from loom.catalog import Catalog
+    from loom.providers import _LAZY
+
+    # Catalog knows "ghost-vendor"; the registry doesn't.
+    custom = {
+        "ghost-vendor": {
+            "label": "Ghost Vendor",
+            "modalities": {"text": [{"id": "phantom", "name": "Phantom"}]},
+        }
+    }
+    monkeypatch.delitem(_LAZY, "ghost-vendor", raising=False)
+    client = Loom(catalog=Catalog.from_mapping(custom))
     with pytest.raises(ProviderError):
         client.generate(
-            provider="anthropic",
+            provider="ghost-vendor",
             modality="text",
-            model="claude-haiku-4-5",
+            model="phantom",
             prompt="hi",
         )
 
