@@ -33,6 +33,8 @@ def log_call(
     latency_ms: float,
     result: dict[str, Any] | None,
     error: BaseException | None = None,
+    cached: bool = False,
+    deduped: bool = False,
 ) -> None:
     usage = (result or {}).get("usage") or {}
     cost = (result or {}).get("cost") or {}
@@ -49,6 +51,8 @@ def log_call(
         "cost_local": cost.get("local"),
         "cost_currency": cost.get("local_currency"),
         "ok": error is None,
+        "cached": cached,
+        "deduped": deduped,
     }
     if error is not None:
         extra["error_type"] = type(error).__name__

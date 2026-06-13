@@ -81,6 +81,9 @@ client = Loom(
     api_keys: dict[str, str] | None = None,
     local_currency: str = "INR",
     local_to_usd: float = 1/83,
+    retry: RetryPolicy | None = RetryPolicy(),  # set to None to disable
+    cache: CacheBackend | None = None,           # off by default
+    dedup: bool = True,
 )
 ```
 
@@ -90,6 +93,11 @@ client = Loom(
 - `local_currency` — label used on `cost.local_currency`.
 - `local_to_usd` — multiplier converting one unit of local currency
   to USD. At 1 USD ≈ 83 INR, the default is `1/83 ≈ 0.012`.
+- `retry` — `RetryPolicy` instance; default is `RetryPolicy()`. Pass
+  `None` to disable retries entirely. See "Optimization layer" below.
+- `cache` — `CacheBackend` (e.g. `InMemoryCache()` or `RedisCache()`);
+  cache is OFF unless explicitly passed in.
+- `dedup` — single-flight on identical concurrent calls. On by default.
 
 ```python
 Loom.from_env(
@@ -278,6 +286,102 @@ import logging
 logging.basicConfig(level=logging.INFO)
 # or, for JSON output, route the "loom" logger to your JSON handler.
 ```
+
+---
+
+## Optimization layer (Phase 3)
+
+Three primitives ship together and can be combined freely.
+
+### Retry
+
+```python
+from loom import Loom, RetryPolicy
+
+client = Loom(
+    retry=RetryPolicy(
+        max_attempts=3,        # total attempts incl. the first
+        base_delay=0.5,        # seconds; doubled each attempt
+        max_delay=8.0,         # ceiling for the backoff
+        jitter=0.25,           # ± fraction of the computed delay
+    ),
+)
+```
+
+Default policy retries `RateLimitError` and transient network errors
+(timeouts, `ConnectionError`, OpenAI/Anthropic SDK `APIConnectionError`
+/ `APITimeoutError`). Never retries `AuthError` or `ModelNotFoundError`.
+Pass `retry=None` to disable.
+
+### Response cache
+
+```python
+from loom import Loom, InMemoryCache, RedisCache
+
+# in-process LRU + TTL
+client = Loom(cache=InMemoryCache(maxsize=10_000, ttl=3600))
+
+# shared across processes
+client = Loom(cache=RedisCache(url="redis://prod-redis:6379/0", ttl=3600))
+```
+
+Cache key is `sha256(canonical(provider, modality, model, prompt, params))` —
+param ordering is normalized so dict-key order doesn't poison the key.
+
+Per-call opt-out:
+
+```python
+client.generate(..., use_cache=False)
+```
+
+Cached responses keep their original `cost` and `usage` fields so
+spend reporting can distinguish billed calls (no `cached` log flag)
+from served-from-cache calls (`cached=true` on the log line).
+
+`RedisCache` failures (connection drops, serialization issues) degrade
+to "miss / no-op" with a `loom.cache` warning log, so a Redis outage
+doesn't take down request handling.
+
+### Request deduplication
+
+On by default. When N callers issue the same `(provider, modality,
+model, prompt, params)` concurrently, only the first hits the upstream
+API — the rest wait on the in-flight slot and receive the same result
+(or the same exception). Log lines on the deduped callers carry
+`deduped=true`.
+
+Disable with `Loom(dedup=False)` when you specifically want N
+independent samples for the same prompt.
+
+Sync and async dedup registries are separate — a sync caller and an
+async caller racing the same prompt do NOT coalesce.
+
+### Order of operations
+
+For each `generate(...)` call:
+
+1. Compute call key.
+2. **Cache check** — if hit, return immediately (`cached=True` on log).
+3. **Dedup slot** — claim it, or wait on the existing owner
+   (`deduped=True` on log for waiters).
+4. **Retry-wrapped provider call** — exponential backoff on retryable errors.
+5. On success: enrich, **fill cache**, notify any waiters, log INFO.
+6. On failure: notify waiters with the error, log WARNING, re-raise.
+
+### What's still pending in Phase 3
+
+The roadmap items not yet implemented in this branch:
+
+- **Vendor-native prompt caching** (Anthropic / OpenAI / Gemini / DeepSeek headers)
+- **Smart model routing** (cheap-first with confidence-driven escalation)
+- **Batch API integration** (OpenAI / Anthropic / Gemini batch endpoints)
+- **Cross-vendor failover** (the "failover" half of retry-and-failover —
+  requires an equivalent-models map that doesn't exist yet)
+- **Observability dashboard** (per-project / per-model cost reporting UI)
+- **Centralized key vault integration** (AWS / GCP / Vault backends for `api_keys`)
+- **Public docs site** and **semver stability commitment** (release-time concerns)
+
+These all land independently on top of the primitives above.
 
 ---
 

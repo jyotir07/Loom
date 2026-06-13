@@ -25,7 +25,9 @@ Same thing, explicit instance (useful when you want a non-default config):
     )
 """
 
+from loom._cache import CacheBackend, InMemoryCache, RedisCache
 from loom._loom import AsyncLoom, Loom, agenerate, generate
+from loom._retry import RetryPolicy
 from loom.catalog import Catalog
 from loom.errors import (
     AuthError,
@@ -48,6 +50,10 @@ __all__ = [
     "Catalog",
     "generate",
     "agenerate",
+    "RetryPolicy",
+    "CacheBackend",
+    "InMemoryCache",
+    "RedisCache",
     "LoomError",
     "ProviderError",
     "AuthError",
