@@ -262,8 +262,36 @@ Loom(retry=None)                                 # don't retry on rate-limits
 
 See `docs/api_reference.md` → "Optimization layer" for the full
 flow + the list of items still pending in Phase 3 (vendor prompt
-caching, smart routing, batch API, cross-vendor failover, observability
-dashboard, vault integration).
+caching, smart routing, more batch adapters, cross-vendor failover,
+observability dashboard, vault integration).
+
+### Bulk / overnight jobs — use the Batch API
+
+For workloads that can tolerate ~24h latency, OpenAI's batch endpoint
+is ~50% cheaper than real-time. Bulk migrations, embedding backfills,
+overnight analytics — all good candidates.
+
+```python
+from loom import Loom, BatchRequest
+
+client = Loom.from_env()
+
+# Submit and walk away.
+handle = client.submit_batch([
+    BatchRequest(provider="openai", modality="text",
+                 model="gpt-4o-mini", prompt=text, custom_id=row_id)
+    for row_id, text in rows
+])
+# Persist handle.id somewhere. Pick up later:
+#   results = handle.wait()  # aligned to your input order
+
+# Or block this process until done:
+results = client.run_batch(requests, poll_interval=60.0)
+```
+
+Results align element-for-element to your submitted requests. Failed
+rows appear as `{"kind": "error", "error": "...", "custom_id": "..."}`
+in-place; the batch as a whole still completes.
 
 ---
 

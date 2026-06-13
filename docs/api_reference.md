@@ -368,13 +368,78 @@ For each `generate(...)` call:
 5. On success: enrich, **fill cache**, notify any waiters, log INFO.
 6. On failure: notify waiters with the error, log WARNING, re-raise.
 
+### Batch API
+
+For workloads that can wait (offline jobs, overnight analytics,
+bulk migrations), vendor batch endpoints typically cost ~50% less
+than real-time calls with a ~24h SLA.
+
+```python
+from loom import Loom, BatchRequest
+
+client = Loom.from_env()
+
+handle = client.submit_batch([
+    BatchRequest(provider="openai", modality="text",
+                 model="gpt-4o-mini", prompt="summarize row 1",
+                 custom_id="row-1"),
+    BatchRequest(provider="openai", modality="text",
+                 model="gpt-4o-mini", prompt="summarize row 2",
+                 custom_id="row-2"),
+])
+
+print(handle.id, handle.status())
+
+# Block until done (default 24h cap, 30s poll cadence).
+results = handle.wait(poll_interval=60.0, timeout=24 * 3600)
+
+# results is a list aligned to your original BatchRequest order.
+# Each item is either a normal {"kind": "text", "text": "..."} response
+# or {"kind": "error", "error": "...", "custom_id": "..."} for that
+# single failed row.
+```
+
+One-shot:
+
+```python
+results = client.run_batch([req1, req2, req3])
+```
+
+`BatchHandle` API:
+
+```python
+handle.id            # vendor-side batch id
+handle.provider      # "openai" etc.
+handle.requests      # original BatchRequest list (in caller order)
+handle.status()      # str — vendor's current status
+handle.is_ready()    # True iff status is terminal
+handle.wait(...)     # blocks; returns aligned results on success
+handle.results()     # fetch (errors if status != "completed")
+handle.cancel()      # best-effort cancel
+```
+
+Constraints:
+
+- **One provider per batch.** Cross-vendor batching is N vendor-side
+  jobs and Loom doesn't hide that — file N batches.
+- **One modality per batch.** OpenAI's batch endpoint is per-URL
+  (`/v1/chat/completions` xor `/v1/images/generations`); mixing text +
+  image in one submission is rejected at `submit_batch` time.
+- **custom_id collisions are rejected** at submit time. If you don't
+  supply one, Loom generates `loom-<uuid>`.
+
+Only OpenAI has a registered batch adapter in this chunk. Anthropic
+and Gemini follow the same protocol and register in
+`loom/batch_providers/__init__.py` when added.
+
 ### What's still pending in Phase 3
 
 The roadmap items not yet implemented in this branch:
 
 - **Vendor-native prompt caching** (Anthropic / OpenAI / Gemini / DeepSeek headers)
 - **Smart model routing** (cheap-first with confidence-driven escalation)
-- **Batch API integration** (OpenAI / Anthropic / Gemini batch endpoints)
+- **Batch API: more vendors** (Anthropic and Gemini batch adapters —
+  OpenAI is wired up)
 - **Cross-vendor failover** (the "failover" half of retry-and-failover —
   requires an equivalent-models map that doesn't exist yet)
 - **Observability dashboard** (per-project / per-model cost reporting UI)

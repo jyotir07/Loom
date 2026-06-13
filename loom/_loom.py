@@ -30,6 +30,7 @@ from pathlib import Path
 from typing import Any
 
 from loom import _context
+from loom import batch_providers as _batch_providers
 from loom import providers as _providers
 from loom._cache import CacheBackend
 from loom._call_key import call_key
@@ -41,7 +42,9 @@ from loom._pricing import (
     compute_cost,
 )
 from loom._retry import RetryPolicy, arun_with_retry, run_with_retry
+from loom.batch import BatchHandle, BatchRequest
 from loom.catalog import Catalog
+from loom.errors import ProviderError
 
 _UNSET: Any = object()
 
@@ -270,6 +273,65 @@ class Loom:
         if cost is not None:
             result["cost"] = cost
         return result
+
+    # ---------------- batch ----------------
+
+    def submit_batch(
+        self,
+        requests: list[BatchRequest],
+        **adapter_kwargs: Any,
+    ) -> BatchHandle:
+        """Submit a batch to the appropriate vendor batch endpoint.
+
+        All requests must share `provider`. Returns a `BatchHandle` —
+        call `.wait()` to block until done, or `.status()` / `.results()`
+        to poll explicitly.
+
+        Extra kwargs are forwarded to the vendor adapter's `submit()`
+        (e.g. `completion_window="24h"` on OpenAI).
+        """
+        if not requests:
+            raise ProviderError("submit_batch requires at least one request")
+        providers = {r.provider for r in requests}
+        if len(providers) > 1:
+            raise ProviderError(
+                "submit_batch requires a single provider per batch — got "
+                f"{sorted(providers)}. File N batches if you need that."
+            )
+        provider = providers.pop()
+        module = _batch_providers._module_for(provider)
+
+        def _resolve(p: str, m: str, mid: str):
+            return self.catalog.resolve(p, m, mid)
+
+        # api_keys context: providers read keys via require_env, so we
+        # need the LoomContext active during submit AND during later
+        # status/results/cancel calls — captured via the factory below.
+        def _ctx_factory():
+            return _context.LoomContext(api_keys=self.api_keys)
+
+        with _context.use(_ctx_factory()):
+            batch_id = module.submit(requests, _resolve, **adapter_kwargs)
+
+        return BatchHandle(
+            id=batch_id,
+            provider=provider,
+            requests=list(requests),
+            _module=module,
+            _context_factory=_ctx_factory,
+        )
+
+    def run_batch(
+        self,
+        requests: list[BatchRequest],
+        *,
+        poll_interval: float = 30.0,
+        timeout: float = 24 * 3600.0,
+        **adapter_kwargs: Any,
+    ) -> list[dict[str, Any]]:
+        """Submit + poll + return aligned results. Blocks for up to `timeout`."""
+        handle = self.submit_batch(requests, **adapter_kwargs)
+        return handle.wait(poll_interval=poll_interval, timeout=timeout)
 
 
 class AsyncLoom(Loom):
