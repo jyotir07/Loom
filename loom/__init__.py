@@ -25,7 +25,7 @@ Same thing, explicit instance (useful when you want a non-default config):
     )
 """
 
-from loom._loom import Loom, generate
+from loom._loom import AsyncLoom, Loom, agenerate, generate
 from loom.catalog import Catalog
 from loom.errors import (
     AuthError,
@@ -34,16 +34,30 @@ from loom.errors import (
     ProviderError,
     RateLimitError,
 )
+from loom.types import (
+    Cost,
+    ImagePayload,
+    ImageResponse,
+    TextResponse,
+    Usage,
+)
 
 __all__ = [
     "Loom",
+    "AsyncLoom",
     "Catalog",
     "generate",
+    "agenerate",
     "LoomError",
     "ProviderError",
     "AuthError",
     "RateLimitError",
     "ModelNotFoundError",
+    "TextResponse",
+    "ImageResponse",
+    "ImagePayload",
+    "Usage",
+    "Cost",
 ]
 
 __version__ = "0.1.0"

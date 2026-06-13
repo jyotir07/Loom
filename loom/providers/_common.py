@@ -8,11 +8,23 @@ from typing import Any
 
 import requests
 
+from loom import _context
 from loom.errors import AuthError
 
 
 def require_env(name: str) -> str:
-    """Return env var `name` or raise AuthError if missing/blank."""
+    """Return the API key for `name` or raise AuthError if missing/blank.
+
+    Resolution order:
+      1. Programmatic api_keys passed into Loom(api_keys=...) — checked via
+         the active LoomContext.
+      2. The process environment variable of the same name.
+    """
+    ctx = _context.current()
+    if ctx is not None:
+        override = (ctx.api_keys.get(name) or "").strip()
+        if override:
+            return override
     value = (os.getenv(name) or "").strip()
     if not value:
         raise AuthError(f"environment variable {name} is required but not set")

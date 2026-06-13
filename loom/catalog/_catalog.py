@@ -1,27 +1,56 @@
 """Catalog class + module-level default instance.
 
-The default in-memory dataset lives in `_data.py`. Phase 2 will add
-backends keyed on this same interface (Catalog.providers, .modalities,
-.models, .resolve).
+The default in-memory dataset lives in `_data.py`. Backends (memory,
+YAML, etc.) live in `backends.py` — Catalog accepts either a raw dict
+(via `data=`) or any object with a `.load() -> dict` method (via
+`backend=`).
 """
 
 from __future__ import annotations
 
+import os
 from typing import Any
 
 from loom.catalog._data import CATALOG as _DEFAULT_CATALOG
+from loom.catalog.backends import CatalogBackend, MemoryBackend, YamlBackend
 from loom.errors import ModelNotFoundError
 
 
 class Catalog:
-    """In-memory catalog of providers, modalities, and models.
+    """Catalog of providers, modalities, and models.
 
-    Construct with no arguments to use Loom's bundled catalog, or
-    pass `data=` to use a custom dict in the same schema.
+    Three construction styles:
+
+        Catalog()                       # bundled default catalog
+        Catalog(data=my_dict)            # in-memory dict in Loom's schema
+        Catalog(backend=YamlBackend(p))  # any pluggable backend
+        Catalog.from_yaml("models.yaml") # convenience for the YAML case
+
+    `data=` wins if both `data` and `backend` are passed.
     """
 
-    def __init__(self, data: dict[str, Any] | None = None) -> None:
-        self._data: dict[str, Any] = data if data is not None else _DEFAULT_CATALOG
+    def __init__(
+        self,
+        data: dict[str, Any] | None = None,
+        *,
+        backend: CatalogBackend | None = None,
+    ) -> None:
+        if data is not None:
+            self._data: dict[str, Any] = data
+        elif backend is not None:
+            self._data = backend.load()
+        else:
+            self._data = _DEFAULT_CATALOG
+
+    @classmethod
+    def from_yaml(cls, path: str | os.PathLike[str]) -> "Catalog":
+        """Build a Catalog from a YAML file."""
+        return cls(backend=YamlBackend(path))
+
+    @classmethod
+    def from_mapping(cls, data: dict[str, Any]) -> "Catalog":
+        """Build a Catalog from a dict in Loom's schema."""
+        return cls(backend=MemoryBackend(data))
 
     @property
     def data(self) -> dict[str, Any]:

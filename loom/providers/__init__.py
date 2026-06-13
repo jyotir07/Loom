@@ -17,6 +17,7 @@ base URL — those wrappers land as the catalog needs them.
 
 from __future__ import annotations
 
+import asyncio
 import importlib
 from types import ModuleType
 from typing import Any
@@ -61,4 +62,26 @@ def generate(
     return module.generate(modality, model, params, prompt)
 
 
-__all__ = ["available", "generate"]
+async def agenerate(
+    provider: str,
+    modality: str,
+    model: str,
+    params: dict[str, Any],
+    prompt: str,
+) -> dict[str, Any]:
+    """Route an async generate() call to the right provider module.
+
+    Prefers the provider's native `agenerate(...)` coroutine. If the
+    provider only exposes a sync `generate(...)`, runs it in a thread
+    via asyncio.to_thread so callers still get a non-blocking await.
+    """
+    module = _module_for(provider)
+    native = getattr(module, "agenerate", None)
+    if native is not None:
+        return await native(modality, model, params, prompt)
+    return await asyncio.to_thread(
+        module.generate, modality, model, params, prompt
+    )
+
+
+__all__ = ["available", "generate", "agenerate"]
