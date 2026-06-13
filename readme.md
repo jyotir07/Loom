@@ -23,7 +23,7 @@ In a typical org without something like Loom:
 - **There's no unified view of cost.** Finance asks "what are we spending on AI?" and the answer is "we'll get back to you."
 - **Vendor breaking changes hurt N times.** When a provider changes their response shape, every consuming project breaks.
 
-Loom collapses all of this into one library.
+Loom collapses all of this into **ONE** library.
 
 ## What Loom provides
 
