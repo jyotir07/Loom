@@ -31,13 +31,19 @@ from typing import Any
 
 from loom import _context
 from loom import providers as _providers
+from loom._cache import CacheBackend
+from loom._call_key import call_key
+from loom._dedup import InFlight
 from loom._logging import log_call
 from loom._pricing import (
     DEFAULT_LOCAL_CURRENCY,
     DEFAULT_LOCAL_TO_USD,
     compute_cost,
 )
+from loom._retry import RetryPolicy, arun_with_retry, run_with_retry
 from loom.catalog import Catalog
+
+_UNSET: Any = object()
 
 
 class Loom:
@@ -65,11 +71,18 @@ class Loom:
         api_keys: dict[str, str] | None = None,
         local_currency: str = DEFAULT_LOCAL_CURRENCY,
         local_to_usd: float = DEFAULT_LOCAL_TO_USD,
+        retry: RetryPolicy | None = _UNSET,
+        cache: CacheBackend | None = None,
+        dedup: bool = True,
     ) -> None:
         self.catalog = catalog or Catalog()
         self.api_keys: dict[str, str] = dict(api_keys or {})
         self.local_currency = local_currency
         self.local_to_usd = local_to_usd
+        # retry=_UNSET (default) -> use default policy; retry=None -> disabled.
+        self.retry = RetryPolicy() if retry is _UNSET else retry
+        self.cache = cache
+        self._inflight: InFlight | None = InFlight() if dedup else None
 
     @classmethod
     def from_env(
@@ -80,6 +93,9 @@ class Loom:
         api_keys: dict[str, str] | None = None,
         local_currency: str = DEFAULT_LOCAL_CURRENCY,
         local_to_usd: float = DEFAULT_LOCAL_TO_USD,
+        retry: RetryPolicy | None = _UNSET,
+        cache: CacheBackend | None = None,
+        dedup: bool = True,
     ) -> "Loom":
         """Build a Loom that reads vendor keys from environment variables.
 
@@ -105,6 +121,9 @@ class Loom:
             api_keys=api_keys,
             local_currency=local_currency,
             local_to_usd=local_to_usd,
+            retry=retry,
+            cache=cache,
+            dedup=dedup,
         )
 
     def generate(
@@ -115,11 +134,18 @@ class Loom:
         model: str,
         prompt: str,
         params: dict[str, Any] | None = None,
+        use_cache: bool = True,
     ) -> dict[str, Any]:
         """Resolve `model` against the catalog and dispatch to the provider.
 
         `params` are merged on top of the catalog defaults for that
         model — caller params win on conflict.
+
+        Flow when both cache and dedup are enabled:
+            1. Cache hit?  -> return immediately, log cached=True.
+            2. In-flight?  -> wait on the existing caller, log deduped=True.
+            3. Otherwise   -> claim the slot, run with retry, fill cache,
+                              notify waiters.
         """
         upstream_model, catalog_params = self.catalog.resolve(
             provider, modality, model
@@ -127,39 +153,91 @@ class Loom:
         merged: dict[str, Any] = dict(catalog_params)
         if params:
             merged.update(params)
-        ctx = _context.LoomContext(api_keys=self.api_keys)
+
+        key = call_key(
+            provider=provider,
+            modality=modality,
+            model=upstream_model,
+            prompt=prompt,
+            params=merged,
+        )
         started = time.perf_counter()
-        try:
-            with _context.use(ctx):
-                result = _providers.generate(
-                    provider, modality, upstream_model, merged, prompt
+
+        # 1. Cache lookup.
+        if self.cache is not None and use_cache:
+            cached = self.cache.get(key)
+            if cached is not None:
+                log_call(
+                    provider=provider, modality=modality, model=model,
+                    upstream_model=upstream_model,
+                    latency_ms=(time.perf_counter() - started) * 1000.0,
+                    result=cached, cached=True,
                 )
-        except BaseException as exc:
+                return cached
+
+        # 2. Single-flight: claim slot or wait on existing one.
+        is_owner = True
+        slot = None
+        if self._inflight is not None:
+            is_owner, slot = self._inflight.claim_or_wait_sync(key)
+
+        if not is_owner:
+            # Wait for the owner to finish, then propagate their result/error.
+            assert slot is not None
+            slot.event.wait()
+            if slot.error is not None:
+                log_call(
+                    provider=provider, modality=modality, model=model,
+                    upstream_model=upstream_model,
+                    latency_ms=(time.perf_counter() - started) * 1000.0,
+                    result=None, error=slot.error, deduped=True,
+                )
+                raise slot.error
+            assert slot.result is not None
             log_call(
-                provider=provider,
-                modality=modality,
-                model=model,
+                provider=provider, modality=modality, model=model,
                 upstream_model=upstream_model,
                 latency_ms=(time.perf_counter() - started) * 1000.0,
-                result=None,
-                error=exc,
+                result=slot.result, deduped=True,
             )
+            return slot.result
+
+        # 3. We own the slot — run the upstream call (with retry) and fan out.
+        ctx = _context.LoomContext(api_keys=self.api_keys)
+        try:
+            def _do_call() -> dict[str, Any]:
+                with _context.use(ctx):
+                    return _providers.generate(
+                        provider, modality, upstream_model, merged, prompt
+                    )
+
+            result = run_with_retry(self.retry, _do_call)
+        except BaseException as exc:
+            log_call(
+                provider=provider, modality=modality, model=model,
+                upstream_model=upstream_model,
+                latency_ms=(time.perf_counter() - started) * 1000.0,
+                result=None, error=exc,
+            )
+            if self._inflight is not None:
+                self._inflight.finish_sync(key, error=exc)
             raise
+
         enriched = self._enrich(
             result,
-            provider=provider,
-            modality=modality,
-            model=model,
+            provider=provider, modality=modality, model=model,
             upstream_model=upstream_model,
         )
+        if self.cache is not None and use_cache:
+            self.cache.set(key, enriched)
         log_call(
-            provider=provider,
-            modality=modality,
-            model=model,
+            provider=provider, modality=modality, model=model,
             upstream_model=upstream_model,
             latency_ms=(time.perf_counter() - started) * 1000.0,
             result=enriched,
         )
+        if self._inflight is not None:
+            self._inflight.finish_sync(key, result=enriched)
         return enriched
 
     def _enrich(
@@ -210,6 +288,7 @@ class AsyncLoom(Loom):
         model: str,
         prompt: str,
         params: dict[str, Any] | None = None,
+        use_cache: bool = True,
     ) -> dict[str, Any]:
         upstream_model, catalog_params = self.catalog.resolve(
             provider, modality, model
@@ -217,39 +296,87 @@ class AsyncLoom(Loom):
         merged: dict[str, Any] = dict(catalog_params)
         if params:
             merged.update(params)
-        ctx = _context.LoomContext(api_keys=self.api_keys)
+
+        key = call_key(
+            provider=provider,
+            modality=modality,
+            model=upstream_model,
+            prompt=prompt,
+            params=merged,
+        )
         started = time.perf_counter()
-        try:
-            with _context.use(ctx):
-                result = await _providers.agenerate(
-                    provider, modality, upstream_model, merged, prompt
+
+        if self.cache is not None and use_cache:
+            cached = self.cache.get(key)
+            if cached is not None:
+                log_call(
+                    provider=provider, modality=modality, model=model,
+                    upstream_model=upstream_model,
+                    latency_ms=(time.perf_counter() - started) * 1000.0,
+                    result=cached, cached=True,
                 )
-        except BaseException as exc:
+                return cached
+
+        is_owner = True
+        slot = None
+        if self._inflight is not None:
+            is_owner, slot = self._inflight.claim_or_wait_async(key)
+
+        if not is_owner:
+            assert slot is not None
+            await slot.event.wait()
+            if slot.error is not None:
+                log_call(
+                    provider=provider, modality=modality, model=model,
+                    upstream_model=upstream_model,
+                    latency_ms=(time.perf_counter() - started) * 1000.0,
+                    result=None, error=slot.error, deduped=True,
+                )
+                raise slot.error
+            assert slot.result is not None
             log_call(
-                provider=provider,
-                modality=modality,
-                model=model,
+                provider=provider, modality=modality, model=model,
                 upstream_model=upstream_model,
                 latency_ms=(time.perf_counter() - started) * 1000.0,
-                result=None,
-                error=exc,
+                result=slot.result, deduped=True,
             )
+            return slot.result
+
+        ctx = _context.LoomContext(api_keys=self.api_keys)
+        try:
+            async def _do_call() -> dict[str, Any]:
+                with _context.use(ctx):
+                    return await _providers.agenerate(
+                        provider, modality, upstream_model, merged, prompt
+                    )
+
+            result = await arun_with_retry(self.retry, _do_call)
+        except BaseException as exc:
+            log_call(
+                provider=provider, modality=modality, model=model,
+                upstream_model=upstream_model,
+                latency_ms=(time.perf_counter() - started) * 1000.0,
+                result=None, error=exc,
+            )
+            if self._inflight is not None:
+                self._inflight.finish_async(key, error=exc)
             raise
+
         enriched = self._enrich(
             result,
-            provider=provider,
-            modality=modality,
-            model=model,
+            provider=provider, modality=modality, model=model,
             upstream_model=upstream_model,
         )
+        if self.cache is not None and use_cache:
+            self.cache.set(key, enriched)
         log_call(
-            provider=provider,
-            modality=modality,
-            model=model,
+            provider=provider, modality=modality, model=model,
             upstream_model=upstream_model,
             latency_ms=(time.perf_counter() - started) * 1000.0,
             result=enriched,
         )
+        if self._inflight is not None:
+            self._inflight.finish_async(key, result=enriched)
         return enriched
 
 

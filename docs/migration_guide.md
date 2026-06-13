@@ -228,6 +228,45 @@ except ProviderError:
 
 ---
 
+## Turning on the optimization layer
+
+Phase 3 primitives are off (cache) or on with safe defaults (retry, dedup).
+The minimal "turn it on" pattern:
+
+```python
+from loom import Loom, InMemoryCache
+
+client = Loom(
+    cache=InMemoryCache(maxsize=10_000, ttl=3600),
+    # retry and dedup already on by default
+)
+```
+
+In a multi-process deployment (FastAPI behind a worker pool, Celery, etc.):
+
+```python
+from loom import Loom, RedisCache
+
+client = Loom(
+    cache=RedisCache(url="redis://internal-redis:6379/0", ttl=3600),
+)
+```
+
+Per-call opt-outs:
+
+```python
+client.generate(..., use_cache=False)            # force a fresh upstream call
+Loom(dedup=False)                                # don't coalesce concurrent calls
+Loom(retry=None)                                 # don't retry on rate-limits
+```
+
+See `docs/api_reference.md` → "Optimization layer" for the full
+flow + the list of items still pending in Phase 3 (vendor prompt
+caching, smart routing, batch API, cross-vendor failover, observability
+dashboard, vault integration).
+
+---
+
 ## Cost logging
 
 Every successful call returns a `cost` field:
