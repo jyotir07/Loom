@@ -28,6 +28,7 @@ Same thing, explicit instance (useful when you want a non-default config):
 from loom._cache import CacheBackend, InMemoryCache, RedisCache
 from loom._loom import AsyncLoom, Loom, agenerate, generate
 from loom._retry import RetryPolicy
+from loom.batch import BatchHandle, BatchRequest
 from loom.catalog import Catalog
 from loom.errors import (
     AuthError,
@@ -54,6 +55,8 @@ __all__ = [
     "CacheBackend",
     "InMemoryCache",
     "RedisCache",
+    "BatchRequest",
+    "BatchHandle",
     "LoomError",
     "ProviderError",
     "AuthError",
