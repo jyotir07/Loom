@@ -16,6 +16,10 @@ from __future__ import annotations
 
 from typing import Any
 
+from loom._prompt_cache_rates import (
+    cache_write_premium_for,
+    cached_discount_for,
+)
 from loom.catalog import Catalog
 from loom.types import Cost, Usage
 
@@ -59,13 +63,33 @@ def compute_cost(
     local_amount: float | None = None
 
     if modality == "text" and usage is not None:
-        inp = float(usage.get("input_tokens") or 0)
+        # Vendor usage shapes:
+        #   - `input_tokens` is the total prompt token count INCLUDING
+        #     any cached/cache-write tokens. We have to subtract those
+        #     before charging at the full rate.
+        #   - `cached_tokens` is the cached-read subset (always a discount).
+        #   - `cache_creation_tokens` (Anthropic only) is tokens written
+        #     to cache this call (small premium).
+        total_input = float(usage.get("input_tokens") or 0)
+        cached = float(usage.get("cached_tokens") or 0)
+        cache_writes = float(usage.get("cache_creation_tokens") or 0)
         out = float(usage.get("output_tokens") or 0)
+        non_cached_input = max(0.0, total_input - cached - cache_writes)
+
         in_rate = entry.get("input_inr_per_1m")
         out_rate = entry.get("output_inr_per_1m")
         if in_rate is None and out_rate is None:
             return None
-        local_amount = (inp * float(in_rate or 0) + out * float(out_rate or 0)) / 1_000_000.0
+
+        in_rate_f = float(in_rate or 0)
+        discount = cached_discount_for(provider)
+        premium = cache_write_premium_for(provider)
+        input_cost = (
+            non_cached_input * in_rate_f
+            + cached * in_rate_f * discount
+            + cache_writes * in_rate_f * premium
+        )
+        local_amount = (input_cost + out * float(out_rate or 0)) / 1_000_000.0
     elif modality == "image":
         per_image = entry.get("cost_inr")
         if per_image is None:

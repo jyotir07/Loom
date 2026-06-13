@@ -15,12 +15,29 @@ from loom.providers._common import require_env, text_response
 
 def _attach_usage(out: dict[str, Any], resp: Any) -> dict[str, Any]:
     usage = getattr(resp, "usage", None)
-    if usage is not None:
-        out["usage"] = {
-            "input_tokens": int(getattr(usage, "prompt_tokens", 0) or 0),
-            "output_tokens": int(getattr(usage, "completion_tokens", 0) or 0),
-            "total_tokens": int(getattr(usage, "total_tokens", 0) or 0),
-        }
+    if usage is None:
+        return out
+    payload: dict[str, int] = {
+        "input_tokens": int(getattr(usage, "prompt_tokens", 0) or 0),
+        "output_tokens": int(getattr(usage, "completion_tokens", 0) or 0),
+        "total_tokens": int(getattr(usage, "total_tokens", 0) or 0),
+    }
+    # Prompt-cache telemetry — vendors expose this differently. We
+    # check the two known shapes and fall through silently otherwise.
+    #   - DeepSeek: `prompt_cache_hit_tokens` on the usage object.
+    #   - OpenAI-shape with prompt_tokens_details (some compat vendors
+    #     mirror this): `prompt_tokens_details.cached_tokens`.
+    cached = 0
+    deepseek_cached = getattr(usage, "prompt_cache_hit_tokens", None)
+    if deepseek_cached is not None:
+        cached = int(deepseek_cached or 0)
+    else:
+        details = getattr(usage, "prompt_tokens_details", None)
+        if details is not None:
+            cached = int(getattr(details, "cached_tokens", 0) or 0)
+    if cached > 0:
+        payload["cached_tokens"] = cached
+    out["usage"] = payload
     return out
 
 

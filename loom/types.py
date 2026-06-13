@@ -27,6 +27,12 @@ class Usage(TypedDict, total=False):
     input_tokens: int
     output_tokens: int
     total_tokens: int
+    # Prompt-caching telemetry. `cached_tokens` is the subset of input
+    # tokens served from the vendor's prompt cache (always charged at a
+    # discount). `cache_creation_tokens` is the input tokens written
+    # TO the cache (Anthropic only; charged at a small premium).
+    cached_tokens: int
+    cache_creation_tokens: int
 
 
 class Cost(TypedDict, total=False):
