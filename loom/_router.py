@@ -100,6 +100,43 @@ class Router:
             raise ValueError("Router requires at least one candidate")
         self.validator = validator
 
+    @classmethod
+    def failover(
+        cls,
+        *,
+        provider: str,
+        modality: str,
+        model: str,
+        equivalence: "Any | None" = None,
+        validator: Validator | None = None,
+        extra_candidates: Iterable[CandidateLike] | None = None,
+    ) -> "Router":
+        """Build a Router whose candidates are the starting model + its
+        cross-vendor equivalents (from `equivalence`, defaulting to the
+        bundled tier table).
+
+        Use this when you want resilience, not quality routing — if no
+        validator is given, the first vendor that returns a result wins.
+
+        If the starting model has no listed equivalents, the resulting
+        Router contains only that model (still useful — it composes with
+        retry, cache, etc. through `client.route(...)`).
+        """
+        # Local import — _equivalents imports nothing from _router, so no
+        # cycle, but we still defer to keep import-time cost minimal.
+        from loom._equivalents import default_map
+
+        eq = equivalence if equivalence is not None else default_map()
+
+        candidates: list[CandidateLike] = [(provider, modality, model)]
+        for fb_provider, fb_modality, fb_model in eq.equivalents_of(
+            provider, modality, model
+        ):
+            candidates.append((fb_provider, fb_modality, fb_model))
+        if extra_candidates:
+            candidates.extend(extra_candidates)
+        return cls(candidates=candidates, validator=validator)
+
 
 def _merge_params(
     base: dict[str, Any] | None, override: dict[str, Any] | None
