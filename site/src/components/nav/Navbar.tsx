@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { motion, useScroll, useSpring, useTransform } from "framer-motion";
+import { easeInOut, motion, useScroll, useTransform } from "framer-motion";
 import { useState, useEffect } from "react";
 import { Github, ArrowUpRight, Menu, X } from "lucide-react";
 
@@ -21,15 +21,13 @@ export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  // Normalize scroll into a 0→1 morph progress, then run it through a spring
-  // so the bar→pebble transition eases and lags slightly instead of tracking
-  // every raw scroll delta. All visual transforms derive from this one value.
-  const progress = useTransform(scrollY, [0, 120], [0, 1], { clamp: true });
-  const morph = useSpring(progress, {
-    stiffness: 140,
-    damping: 26,
-    mass: 0.5,
-    restDelta: 0.001,
+  // Morph progress is locked directly to scroll position (no spring / no time
+  // lag): as you scroll down from the hero the bar shrinks in real time, and
+  // grows back on scroll up. The easing is applied to position, not time, so
+  // the shrink curve stays smooth without introducing any delay.
+  const morph = useTransform(scrollY, [0, 120], [0, 1], {
+    clamp: true,
+    ease: easeInOut,
   });
 
   const width = useTransform(morph, [0, 1], ["100%", "min(880px, 92%)"]);
