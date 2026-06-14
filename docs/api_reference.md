@@ -287,6 +287,141 @@ logging.basicConfig(level=logging.INFO)
 # or, for JSON output, route the "loom" logger to your JSON handler.
 ```
 
+For a queryable persistent sink + dashboard see the next section.
+
+---
+
+## Key vault integration
+
+Vendor API keys can resolve from a key vault when `.env` / process
+environment isn't an option (compliance, prod hardening, key rotation).
+A `KeyVault` is a third source consulted by `require_env`:
+
+```
+1. programmatic api_keys passed into Loom(api_keys={...})
+2. the process environment variable of the same name
+3. the configured KeyVault.get(name)   <-- new
+```
+
+Local overrides still win — env-var values shadow vault values, so a
+dev can drop a key into their shell without touching infra.
+
+Bundled backends:
+
+```python
+from loom import (
+    Loom,
+    InMemoryVault,
+    AWSSecretsManagerVault,
+    GCPSecretManagerVault,
+    HashiCorpVaultBackend,
+)
+
+# In-memory — for tests / programmatic boot.
+vault = InMemoryVault({"OPENAI_API_KEY": "sk-..."})
+
+# AWS Secrets Manager — one secret per env-var.
+vault = AWSSecretsManagerVault(
+    region_name="us-east-1",
+    prefix="prod/loom/",          # secret id = prefix + env_var_name
+    cache_ttl_seconds=300,        # in-process cache; default 5 min
+)
+
+# AWS Secrets Manager — one JSON secret holds many keys.
+vault = AWSSecretsManagerVault(
+    region_name="us-east-1",
+    json_keyed=True,
+    json_secret_name="prod/loom/bundle",
+)
+# value example:
+# {"OPENAI_API_KEY": "sk-...", "ANTHROPIC_API_KEY": "sk-..."}
+
+# GCP Secret Manager — one secret per env-var.
+vault = GCPSecretManagerVault(
+    project_id="my-project",
+    prefix="loom-",
+    version="latest",
+)
+
+# HashiCorp Vault (KV v2 engine).
+vault = HashiCorpVaultBackend(
+    url="https://vault.internal:8200",
+    token=os.environ["VAULT_TOKEN"],
+    mount_path="secret",
+    secret_key="value",           # which key inside the KV entry holds the secret
+)
+
+client = Loom.from_env(vault=vault)
+```
+
+`KeyVault` is a Protocol:
+
+```python
+class KeyVault(Protocol):
+    def get(self, name: str) -> str | None: ...
+```
+
+Roll your own backend by implementing `get`. The bundled external
+backends share a base class that adds an in-process TTL cache and
+fail-soft behavior — vault outages return `None`, letting
+`require_env` surface a clean `AuthError` instead of leaking a vendor
+SDK trace.
+
+SDK dependencies (`boto3`, `google-cloud-secret-manager`, `hvac`) are
+lazy-imported. None of them are hard deps; install only what your
+chosen backend needs.
+
+---
+
+## Observability dashboard
+
+`loom.observability` ships a SQLite event sink, a logging handler that
+drains the `loom` logger into the sink, and a read-only Flask
+Blueprint that renders cost / latency / cache / dedup / error
+rollups.
+
+```python
+import logging
+from flask import Flask
+from loom.observability import SQLiteSink, LoomLogHandler, make_dashboard
+
+# 1. Persist every Loom call.
+sink = SQLiteSink("loom_events.db")
+logging.getLogger("loom").addHandler(LoomLogHandler(sink))
+
+# 2. Mount the dashboard in any Flask app.
+app = Flask(__name__)
+app.register_blueprint(make_dashboard(sink), url_prefix="/loom-admin")
+```
+
+The Blueprint exposes:
+
+| Route                                | What it returns                                  |
+|--------------------------------------|---------------------------------------------------|
+| `GET /`                              | HTML dashboard (default window: `24h`)            |
+| `GET /api/summary?window=`           | JSON: calls, cost, latency, cache/dedup/error %   |
+| `GET /api/by-provider?window=`       | JSON: per-provider rollup, ordered by cost        |
+| `GET /api/by-model?window=&limit=`   | JSON: top models by cost                          |
+| `GET /api/recent?limit=`             | JSON: last N call events                          |
+
+`window` accepts `1h`, `24h`, `7d`, `30d`, or `all`. Unknown values
+fall back to the `24h` default.
+
+**No auth.** The Blueprint trusts that you've wrapped it in whatever
+your host app already does for login (see the bundled Flask demo's
+`before_request` hook for an example).
+
+**Threading model.** `SQLiteSink` keeps one connection guarded by a
+mutex — writes from the logging thread and reads from the dashboard
+request thread serialize through it. Fine for moderate volumes; if
+you need write-side concurrency, swap the sink for a Postgres-backed
+implementation of the `EventSink` protocol.
+
+**The EventSink Protocol** is intentionally minimal — `write(event)`
+and `fetch(sql=..., params=...)` — so callers who want to point the
+dashboard at an existing log warehouse can write a small adapter
+without touching the queries module.
+
 ---
 
 ## Optimization layer (Phase 3)
@@ -694,7 +829,6 @@ The roadmap items not yet implemented in this branch:
 
 - **Batch API: Gemini** (Vertex AI batch prediction; uses GCS for I/O,
   so it's bigger work than the OpenAI/Anthropic pattern)
-- **Observability dashboard** (per-project / per-model cost reporting UI)
 - **Centralized key vault integration** (AWS / GCP / Vault backends for `api_keys`)
 - **Public docs site** and **semver stability commitment** (release-time concerns)
 

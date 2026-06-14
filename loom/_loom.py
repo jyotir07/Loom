@@ -80,6 +80,7 @@ class Loom:
         retry: RetryPolicy | None = _UNSET,
         cache: CacheBackend | None = None,
         dedup: bool = True,
+        vault: Any | None = None,
     ) -> None:
         self.catalog = catalog or Catalog()
         self.api_keys: dict[str, str] = dict(api_keys or {})
@@ -89,6 +90,8 @@ class Loom:
         self.retry = RetryPolicy() if retry is _UNSET else retry
         self.cache = cache
         self._inflight: InFlight | None = InFlight() if dedup else None
+        # KeyVault — third source for require_env after api_keys + env.
+        self.vault = vault
 
     @classmethod
     def from_env(
@@ -102,6 +105,7 @@ class Loom:
         retry: RetryPolicy | None = _UNSET,
         cache: CacheBackend | None = None,
         dedup: bool = True,
+        vault: Any | None = None,
     ) -> "Loom":
         """Build a Loom that reads vendor keys from environment variables.
 
@@ -130,6 +134,7 @@ class Loom:
             retry=retry,
             cache=cache,
             dedup=dedup,
+            vault=vault,
         )
 
     def generate(
@@ -209,7 +214,7 @@ class Loom:
             return slot.result
 
         # 3. We own the slot — run the upstream call (with retry) and fan out.
-        ctx = _context.LoomContext(api_keys=self.api_keys)
+        ctx = _context.LoomContext(api_keys=self.api_keys, vault=self.vault)
         try:
             def _do_call() -> dict[str, Any]:
                 with _context.use(ctx):
@@ -329,7 +334,7 @@ class Loom:
         # need the LoomContext active during submit AND during later
         # status/results/cancel calls — captured via the factory below.
         def _ctx_factory():
-            return _context.LoomContext(api_keys=self.api_keys)
+            return _context.LoomContext(api_keys=self.api_keys, vault=self.vault)
 
         with _context.use(_ctx_factory()):
             batch_id = module.submit(requests, _resolve, **adapter_kwargs)
@@ -364,7 +369,7 @@ class Loom:
         module = _ctx_cache_providers._module_for(provider)
 
         def _ctx_factory():
-            return _context.LoomContext(api_keys=self.api_keys)
+            return _context.LoomContext(api_keys=self.api_keys, vault=self.vault)
 
         with _context.use(_ctx_factory()):
             info = module.create(
@@ -471,7 +476,7 @@ class AsyncLoom(Loom):
             )
             return slot.result
 
-        ctx = _context.LoomContext(api_keys=self.api_keys)
+        ctx = _context.LoomContext(api_keys=self.api_keys, vault=self.vault)
         try:
             async def _do_call() -> dict[str, Any]:
                 with _context.use(ctx):

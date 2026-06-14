@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "loom"
-version = "0.1.0"
+version = "1.0.0"
 description = "One contract for every AI vendor. Native SDKs preserved; keys, cost, retries, and routing centralised."
 readme = "readme.md"
 requires-python = ">=3.10"
@@ -48,6 +48,9 @@ dev = [
 where = ["."]
 include = ["loom*"]
 exclude = ["tests*", "templates*", "static*", "docs*"]
+
+[tool.setuptools.package-data]
+"loom.observability" = ["templates/*.html"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

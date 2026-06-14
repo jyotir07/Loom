@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Loom — observability</title>
+    <style>
+        :root {
+            --bg: #0f1115;
+            --panel: #161a22;
+            --border: #232a36;
+            --text: #d8dde6;
+            --muted: #8b94a3;
+            --accent: #7aa2f7;
+            --ok: #9ece6a;
+            --warn: #e0af68;
+            --err: #f7768e;
+        }
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-size: 14px;
+        }
+        header {
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        header h1 { font-size: 18px; margin: 0; font-weight: 600; }
+        header .windows { margin-left: auto; display: flex; gap: 4px; }
+        header .windows a {
+            padding: 4px 12px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 12px;
+        }
+        header .windows a.active { color: var(--accent); border-color: var(--accent); }
+        main { padding: 24px; }
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        .card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 16px;
+        }
+        .card .label { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; }
+        .card .value { font-size: 22px; font-weight: 600; margin-top: 6px; }
+        .card .sub { color: var(--muted); font-size: 12px; margin-top: 2px; }
+        section { margin-bottom: 24px; }
+        section h2 {
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--muted);
+            margin: 0 0 8px;
+            font-weight: 600;
+        }
+        table { width: 100%; border-collapse: collapse; background: var(--panel); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+        th, td { padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--border); font-size: 13px; }
+        th { color: var(--muted); font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; }
+        td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+        tr:last-child td { border-bottom: none; }
+        .pill { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 11px; }
+        .pill.ok { background: rgba(158, 206, 106, 0.15); color: var(--ok); }
+        .pill.err { background: rgba(247, 118, 142, 0.15); color: var(--err); }
+        .pill.cache { background: rgba(122, 162, 247, 0.15); color: var(--accent); }
+        .pill.dedup { background: rgba(224, 175, 104, 0.15); color: var(--warn); }
+        .muted { color: var(--muted); }
+        .empty { padding: 24px; text-align: center; color: var(--muted); }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Loom · observability</h1>
+    <div class="windows">
+        {% for w in windows %}
+            <a href="?window={{ w }}" class="{% if w == window %}active{% endif %}">{{ w }}</a>
+        {% endfor %}
+    </div>
+</header>
+
+<main>
+
+    <div class="cards">
+        <div class="card">
+            <div class="label">calls</div>
+            <div class="value">{{ "{:,}".format(summary.calls) }}</div>
+        </div>
+        <div class="card">
+            <div class="label">cost</div>
+            <div class="value">${{ "%.4f"|format(summary.cost_usd) }}</div>
+            <div class="sub">{{ "{:,}".format(summary.input_tokens) }} in / {{ "{:,}".format(summary.output_tokens) }} out tokens</div>
+        </div>
+        <div class="card">
+            <div class="label">avg latency</div>
+            <div class="value">{{ "%.0f"|format(summary.avg_latency_ms) }} ms</div>
+        </div>
+        <div class="card">
+            <div class="label">cache hits</div>
+            <div class="value">{{ summary.cache_hit_pct }}%</div>
+        </div>
+        <div class="card">
+            <div class="label">deduped</div>
+            <div class="value">{{ summary.dedup_pct }}%</div>
+        </div>
+        <div class="card">
+            <div class="label">errors</div>
+            <div class="value">{{ summary.error_pct }}%</div>
+        </div>
+    </div>
+
+    <section>
+        <h2>By provider</h2>
+        {% if providers %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Provider</th>
+                    <th class="num">Calls</th>
+                    <th class="num">Cost (USD)</th>
+                    <th class="num">Avg latency</th>
+                    <th class="num">Cache %</th>
+                    <th class="num">Error %</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in providers %}
+                <tr>
+                    <td>{{ p.provider }}</td>
+                    <td class="num">{{ "{:,}".format(p.calls) }}</td>
+                    <td class="num">${{ "%.4f"|format(p.cost_usd) }}</td>
+                    <td class="num">{{ "%.0f"|format(p.avg_latency_ms) }} ms</td>
+                    <td class="num">{{ p.cache_hit_pct }}%</td>
+                    <td class="num">{{ p.error_pct }}%</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty">No calls in this window.</div>
+        {% endif %}
+    </section>
+
+    <section>
+        <h2>Top models by cost</h2>
+        {% if models %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Provider</th>
+                    <th>Modality</th>
+                    <th>Model</th>
+                    <th class="num">Calls</th>
+                    <th class="num">Cost (USD)</th>
+                    <th class="num">Avg latency</th>
+                    <th class="num">Cache %</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for m in models %}
+                <tr>
+                    <td>{{ m.provider }}</td>
+                    <td class="muted">{{ m.modality }}</td>
+                    <td>{{ m.model }}</td>
+                    <td class="num">{{ "{:,}".format(m.calls) }}</td>
+                    <td class="num">${{ "%.4f"|format(m.cost_usd) }}</td>
+                    <td class="num">{{ "%.0f"|format(m.avg_latency_ms) }} ms</td>
+                    <td class="num">{{ m.cache_hit_pct }}%</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty">No calls in this window.</div>
+        {% endif %}
+    </section>
+
+    <section>
+        <h2>Recent calls</h2>
+        {% if recent %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Provider</th>
+                    <th>Model</th>
+                    <th class="num">Latency</th>
+                    <th class="num">Cost</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in recent %}
+                <tr>
+                    <td>{{ r.provider }}</td>
+                    <td>{{ r.model }} <span class="muted">({{ r.modality }})</span></td>
+                    <td class="num">{{ "%.0f"|format(r.latency_ms) }} ms</td>
+                    <td class="num">{% if r.cost_usd %}${{ "%.6f"|format(r.cost_usd) }}{% else %}<span class="muted">—</span>{% endif %}</td>
+                    <td>
+                        {% if r.ok %}<span class="pill ok">ok</span>{% else %}<span class="pill err">{{ r.error_type or "error" }}</span>{% endif %}
+                        {% if r.cached %}<span class="pill cache">cached</span>{% endif %}
+                        {% if r.deduped %}<span class="pill dedup">deduped</span>{% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty">No calls yet.</div>
+        {% endif %}
+    </section>
+
+</main>
+</body>
+</html>
