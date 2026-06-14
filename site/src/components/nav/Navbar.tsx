@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useScroll, useSpring, useTransform } from "framer-motion";
 import { useState, useEffect } from "react";
 import { Github, ArrowUpRight, Menu, X } from "lucide-react";
 
@@ -21,18 +21,30 @@ export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const width = useTransform(scrollY, [0, 120], ["100%", "min(880px, 92%)"]);
-  const radius = useTransform(scrollY, [0, 120], [0, 999]);
-  const padding = useTransform(scrollY, [0, 120], ["1rem 1.5rem", "0.65rem 1rem"]);
-  const blur = useTransform(scrollY, [0, 120], [0, 18]);
+  // Normalize scroll into a 0→1 morph progress, then run it through a spring
+  // so the bar→pebble transition eases and lags slightly instead of tracking
+  // every raw scroll delta. All visual transforms derive from this one value.
+  const progress = useTransform(scrollY, [0, 120], [0, 1], { clamp: true });
+  const morph = useSpring(progress, {
+    stiffness: 140,
+    damping: 26,
+    mass: 0.5,
+    restDelta: 0.001,
+  });
+
+  const width = useTransform(morph, [0, 1], ["100%", "min(880px, 92%)"]);
+  const radius = useTransform(morph, [0, 1], [0, 999]);
+  const padding = useTransform(morph, [0, 1], ["1rem 1.5rem", "0.65rem 1rem"]);
+  const blur = useTransform(morph, [0, 1], [0, 18]);
+  const backdropFilter = useTransform(blur, (b) => `blur(${b}px)`);
   const bg = useTransform(
-    scrollY,
-    [0, 120],
+    morph,
+    [0, 1],
     ["rgba(5,6,10,0)", "rgba(15,17,23,0.72)"],
   );
   const border = useTransform(
-    scrollY,
-    [0, 120],
+    morph,
+    [0, 1],
     ["rgba(255,255,255,0)", "rgba(255,255,255,0.08)"],
   );
 
@@ -48,7 +60,7 @@ export function Navbar() {
           width,
           borderRadius: radius,
           padding,
-          backdropFilter: useTransform(blur, (b) => `blur(${b}px)`),
+          backdropFilter,
           background: bg,
           borderColor: border,
         }}
