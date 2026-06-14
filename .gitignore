@@ -37,8 +37,9 @@ htmlcov/
 loom_events.db
 
 # NOTE: site/ is intentionally NOT ignored.
-# It holds the prebuilt MkDocs static site that Vercel serves directly
-# from the GitHub repo (Output Directory = site, no build step).
+# It holds the Next.js source app. Vercel builds it with Root Directory = site
+# (Framework = Next.js). Build artifacts (.next/, node_modules/) are ignored by
+# site/.gitignore.
 
 # Node
 node_modules/
