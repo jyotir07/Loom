@@ -7,7 +7,6 @@ venv/
 .vscode/
 docs/roadmap.md
 PROJECT_CONTEXT.txt
-
 # Python build artifacts
 build/
 dist/

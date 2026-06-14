@@ -262,8 +262,8 @@ Loom(retry=None)                                 # don't retry on rate-limits
 
 See `docs/api_reference.md` → "Optimization layer" for the full
 flow + the list of items still pending in Phase 3 (Gemini context
-caching, more batch adapters, cross-vendor failover, observability
-dashboard, vault integration).
+caching, more batch adapters, observability dashboard, vault
+integration).
 
 ### Prompt caching
 
@@ -314,6 +314,31 @@ The validator is your "is this answer good enough" hook. It runs
 against the cheap model's response; if it returns False, Loom calls
 the next candidate. Routing composes with the cache, so repeat hits
 on the cheap candidate cost zero.
+
+### Cross-vendor failover
+
+If your service can't go down when OpenAI does (or when Anthropic does,
+or when any one vendor flakes for ten minutes), use `Router.failover`:
+
+```python
+from loom import Loom, Router
+
+router = Router.failover(
+    provider="openai", modality="text", model="gpt-4o-mini",
+)
+
+client = Loom.from_env()
+result = client.route(router, prompt=question)
+```
+
+Loom tries OpenAI first; if it raises (`AuthError`, `RateLimitError`,
+any `ProviderError`), it falls through the bundled equivalence map —
+by default through `claude-haiku-4-5`, `gemini-2.5-flash`,
+`deepseek-v3`. The set is overridable with a custom `EquivalenceMap`.
+
+You need API keys for every vendor in the chain (otherwise the
+fallbacks raise `AuthError` and Loom moves on, which is fine — but
+they'll never actually answer).
 
 ### Bulk / overnight jobs — use the Batch API
 
