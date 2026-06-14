@@ -426,15 +426,72 @@ params = {
 | OpenAI    | 50% of input rate  | n/a (writes are free)       |
 | Anthropic | 10% of input rate  | 125% of input rate          |
 | DeepSeek  | 10% of input rate  | n/a (writes are free)       |
-| Gemini    | 25% (not wired)    | n/a                         |
+| Gemini    | 25% of input rate  | n/a (via CachedContent)     |
 
 For Anthropic, the first call to a prompt charges `cache_creation_tokens`
 at 1.25× — but subsequent calls within the cache TTL pay 0.1× on the
 cached portion. Break-even is hit at ~2 reads.
 
-Gemini's `CachedContent` resource API is on the Phase 3 backlog — it's
-a different shape (cache resources live independently of calls) and
-needs a separate API surface.
+**Gemini context caching** is a separate surface (see below) because
+its cache is a standalone *resource* with its own lifecycle, not a
+header on a single call.
+
+### Gemini context caching
+
+For long, repeated prompt prefixes (50-page policy docs, retrieval
+contexts, persona + few-shot bundles), Gemini lets you upload the
+content once as a `CachedContent` resource and reference it by ID on
+subsequent calls. The cached portion of input tokens is billed at 25%
+of the normal rate.
+
+```python
+from loom import Loom
+
+client = Loom.from_env()
+
+cache = client.create_context_cache(
+    provider="gemini",
+    model="gemini-2.5-flash",
+    contents=long_static_document,       # str (wrapped as a user-role
+                                         # text part) or list of Gemini
+                                         # Content blocks
+    system_instruction="You are a policy assistant.",
+    ttl_seconds=600,
+    display_name="policy-doc-v3",
+)
+
+# Reference the cache on subsequent calls:
+result = client.generate(
+    provider="gemini", modality="text", model="gemini-2.5-flash",
+    prompt="Does clause 4.2 apply to subcontractors?",
+    params={"cached_content": cache.id},
+)
+result["usage"]["cached_tokens"]   # how many input tokens hit the cache
+result["cost"]["usd"]              # already discounted at 25%
+
+client.delete_context_cache(cache)  # or cache.delete()
+```
+
+`ContextCacheHandle`:
+
+```python
+cache.id               # vendor resource name (e.g. "cachedContents/abc")
+cache.provider         # "gemini"
+cache.model            # the model this cache is keyed to
+cache.display_name     # optional human label
+cache.ttl_seconds      # what was requested at create time
+cache.delete()         # best-effort delete of the vendor resource
+cache.refresh()        # re-fetch raw vendor metadata (expire_time, etc.)
+```
+
+The cache is **model-scoped** — a `CachedContent` created for
+`gemini-2.5-flash` can only be referenced by calls to that same model.
+Loom doesn't enforce this; the vendor will reject mismatches.
+
+Only Gemini has a registered context-cache adapter in this chunk.
+Other providers raise `ProviderError("no Loom context-cache adapter
+yet")`. Anthropic and OpenAI use the in-call header pattern (above)
+and don't ship a standalone cache resource API.
 
 ### Batch API
 
@@ -620,8 +677,6 @@ above (result trace, validator rules, async surface) applies verbatim.
 
 The roadmap items not yet implemented in this branch:
 
-- **Gemini context caching** (`CachedContent` resource API — different shape
-  from header/block-based caching; needs its own surface)
 - **Batch API: more vendors** (Anthropic and Gemini batch adapters —
   OpenAI is wired up)
 - **Observability dashboard** (per-project / per-model cost reporting UI)

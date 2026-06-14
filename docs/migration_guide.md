@@ -261,9 +261,8 @@ Loom(retry=None)                                 # don't retry on rate-limits
 ```
 
 See `docs/api_reference.md` → "Optimization layer" for the full
-flow + the list of items still pending in Phase 3 (Gemini context
-caching, more batch adapters, observability dashboard, vault
-integration).
+flow + the list of items still pending in Phase 3 (more batch
+adapters, observability dashboard, vault integration).
 
 ### Prompt caching
 
@@ -287,6 +286,28 @@ loom.generate(
 
 The first call writes the cache (small premium); calls within the cache
 TTL pay ~10% of normal on the cached portion. Break-even is ~2 reads.
+
+Gemini works differently — the cache is a *resource* you upload once and
+reference by ID from many calls:
+
+```python
+cache = client.create_context_cache(
+    provider="gemini",
+    model="gemini-2.5-flash",
+    contents=long_static_document,
+    ttl_seconds=600,
+)
+result = client.generate(
+    provider="gemini", modality="text", model="gemini-2.5-flash",
+    prompt=user_question,
+    params={"cached_content": cache.id},
+)
+# cached portion billed at 25% of input rate; result["cost"] reflects it.
+client.delete_context_cache(cache)
+```
+
+This is the right shape when you have one big context (a manual, a
+codebase, a knowledge base) being asked many small questions against it.
 
 ### Cheap-first routing
 
