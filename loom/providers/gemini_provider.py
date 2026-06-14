@@ -36,22 +36,56 @@ def _client():
 
 # ---------------- text ----------------
 
+def _split_text_params(params: dict[str, Any] | None) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Split params into (kwargs forwarded directly, config dict).
+
+    Gemini routes `cached_content` (and other generation-config knobs)
+    through a `config={"cached_content": "cachedContents/..."}` kwarg
+    rather than a top-level argument. We pop the known config-level
+    knobs here so callers can keep the flat Loom-side dict shape.
+    """
+    rest = dict(params or {})
+    cfg: dict[str, Any] = {}
+    cached_content = rest.pop("cached_content", None)
+    if cached_content is not None:
+        cfg["cached_content"] = cached_content
+    # If a caller passes an explicit `config` dict, merge our additions
+    # on top — caller wins on conflict so they can override.
+    explicit_cfg = rest.pop("config", None)
+    if isinstance(explicit_cfg, dict):
+        merged = {**cfg, **explicit_cfg}
+        cfg = merged
+    elif explicit_cfg is not None:
+        # Non-dict config (e.g. an SDK GenerateContentConfig object) — let
+        # it pass through verbatim; we don't try to merge cached_content
+        # into a typed object.
+        rest["config"] = explicit_cfg
+        return rest, {}
+    return rest, cfg
+
+
 def _text(model: str, params: dict[str, Any], prompt: str) -> dict[str, Any]:
-    resp = _client().models.generate_content(
-        model=model, contents=prompt, **(params or {})
-    )
+    rest, cfg = _split_text_params(params)
+    kwargs: dict[str, Any] = {"model": model, "contents": prompt, **rest}
+    if cfg:
+        kwargs["config"] = cfg
+    resp = _client().models.generate_content(**kwargs)
     out = text_response(getattr(resp, "text", "") or "")
     usage = getattr(resp, "usage_metadata", None)
     if usage is not None:
         inp = int(getattr(usage, "prompt_token_count", 0) or 0)
         outp = int(getattr(usage, "candidates_token_count", 0) or 0)
-        out["usage"] = {
+        payload: dict[str, int] = {
             "input_tokens": inp,
             "output_tokens": outp,
             "total_tokens": int(
                 getattr(usage, "total_token_count", inp + outp) or 0
             ),
         }
+        cached = int(getattr(usage, "cached_content_token_count", 0) or 0)
+        if cached > 0:
+            payload["cached_tokens"] = cached
+        out["usage"] = payload
     return out
 
 

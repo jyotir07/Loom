@@ -26,6 +26,7 @@ Same thing, explicit instance (useful when you want a non-default config):
 """
 
 from loom._cache import CacheBackend, InMemoryCache, RedisCache
+from loom._context_cache import ContextCacheHandle
 from loom._equivalents import EquivalenceMap
 from loom._loom import AsyncLoom, Loom, agenerate, generate
 from loom._retry import RetryPolicy
@@ -59,6 +60,7 @@ __all__ = [
     "RedisCache",
     "BatchRequest",
     "BatchHandle",
+    "ContextCacheHandle",
     "Router",
     "Candidate",
     "EquivalenceMap",
