@@ -261,9 +261,9 @@ Loom(retry=None)                                 # don't retry on rate-limits
 ```
 
 See `docs/api_reference.md` → "Optimization layer" for the full
-flow + the list of items still pending in Phase 3 (vendor prompt
-caching, smart routing, more batch adapters, cross-vendor failover,
-observability dashboard, vault integration).
+flow + the list of items still pending in Phase 3 (Gemini context
+caching, more batch adapters, cross-vendor failover, observability
+dashboard, vault integration).
 
 ### Prompt caching
 
@@ -287,6 +287,33 @@ loom.generate(
 
 The first call writes the cache (small premium); calls within the cache
 TTL pay ~10% of normal on the cached portion. Break-even is ~2 reads.
+
+### Cheap-first routing
+
+If most of your prompts are easy enough for a small model and only some
+need the expensive one, declare a `Router` and let Loom escalate only
+when needed:
+
+```python
+from loom import Loom, Router
+
+router = Router(
+    candidates=[
+        ("openai", "text", "gpt-4o-mini"),     # try cheap first
+        ("openai", "text", "gpt-4o"),          # escalate
+    ],
+    validator=lambda result: "I don't know" not in result["text"],
+)
+
+client = Loom.from_env()
+result = client.route(router, prompt=user_question)
+print(result["_router"]["used"])   # which model actually answered
+```
+
+The validator is your "is this answer good enough" hook. It runs
+against the cheap model's response; if it returns False, Loom calls
+the next candidate. Routing composes with the cache, so repeat hits
+on the cheap candidate cost zero.
 
 ### Bulk / overnight jobs — use the Batch API
 

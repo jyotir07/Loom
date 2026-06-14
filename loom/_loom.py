@@ -42,6 +42,7 @@ from loom._pricing import (
     compute_cost,
 )
 from loom._retry import RetryPolicy, arun_with_retry, run_with_retry
+from loom._router import Router, run_route_async, run_route_sync
 from loom.batch import BatchHandle, BatchRequest
 from loom.catalog import Catalog
 from loom.errors import ProviderError
@@ -274,6 +275,24 @@ class Loom:
             result["cost"] = cost
         return result
 
+    # ---------------- routing ----------------
+
+    def route(
+        self,
+        router: Router,
+        *,
+        prompt: str,
+        params: dict[str, Any] | None = None,
+        use_cache: bool = True,
+    ) -> dict[str, Any]:
+        """Try `router.candidates` in order, return the first response
+        that passes `router.validator` (or the first that succeeds, if
+        no validator). See `loom._router` for full semantics.
+        """
+        return run_route_sync(
+            self, router, prompt=prompt, params=params, use_cache=use_cache
+        )
+
     # ---------------- batch ----------------
 
     def submit_batch(
@@ -440,6 +459,18 @@ class AsyncLoom(Loom):
         if self._inflight is not None:
             self._inflight.finish_async(key, result=enriched)
         return enriched
+
+    async def route(  # type: ignore[override]
+        self,
+        router: Router,
+        *,
+        prompt: str,
+        params: dict[str, Any] | None = None,
+        use_cache: bool = True,
+    ) -> dict[str, Any]:
+        return await run_route_async(
+            self, router, prompt=prompt, params=params, use_cache=use_cache
+        )
 
 
 _default: Loom | None = None
