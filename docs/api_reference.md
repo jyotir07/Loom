@@ -553,9 +553,24 @@ Constraints:
 - **custom_id collisions are rejected** at submit time. If you don't
   supply one, Loom generates `loom-<uuid>`.
 
-Only OpenAI has a registered batch adapter in this chunk. Anthropic
-and Gemini follow the same protocol and register in
-`loom/batch_providers/__init__.py` when added.
+**Registered batch adapters: OpenAI, Anthropic.** Gemini follows the
+same protocol and registers in `loom/batch_providers/__init__.py`
+when added.
+
+Anthropic-specific notes:
+
+- Text only (Anthropic doesn't expose image generation). Image
+  modality is rejected at `submit_batch` time.
+- Anthropic's per-request body shape (`model`, `max_tokens`,
+  `messages`, `system`) is built by reusing the live adapter's
+  `_build_kwargs`, so the same Loom-side knobs work in batch as
+  real-time — including `cache_system` / `cache_user` for prompt
+  caching across batched rows.
+- Loom normalizes Anthropic's `processing_status` of `"ended"` to the
+  uniform `"completed"` status. Per-row `errored` / `canceled` /
+  `expired` outcomes surface as `{"kind": "error", "code": ...}`
+  entries in `results()`, matching how OpenAI partial failures are
+  reported.
 
 ### Smart model routing
 
@@ -677,8 +692,8 @@ above (result trace, validator rules, async surface) applies verbatim.
 
 The roadmap items not yet implemented in this branch:
 
-- **Batch API: more vendors** (Anthropic and Gemini batch adapters —
-  OpenAI is wired up)
+- **Batch API: Gemini** (Vertex AI batch prediction; uses GCS for I/O,
+  so it's bigger work than the OpenAI/Anthropic pattern)
 - **Observability dashboard** (per-project / per-model cost reporting UI)
 - **Centralized key vault integration** (AWS / GCP / Vault backends for `api_keys`)
 - **Public docs site** and **semver stability commitment** (release-time concerns)

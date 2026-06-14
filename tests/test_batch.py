@@ -231,11 +231,12 @@ def test_empty_batch_rejected():
 
 
 def test_provider_without_batch_adapter_rejected():
-    client = Loom(api_keys={"ANTHROPIC_API_KEY": "k"})
+    # Gemini has a catalog entry and a live adapter, but no batch adapter yet.
+    client = Loom(api_keys={"GEMINI_API_KEY": "k"})
     with pytest.raises(ProviderError, match="no Loom batch adapter"):
         client.submit_batch([
-            BatchRequest(provider="anthropic", modality="text",
-                         model="claude-haiku-4-5", prompt="x"),
+            BatchRequest(provider="gemini", modality="text",
+                         model="gemini-2.5-flash", prompt="x"),
         ])
 
 

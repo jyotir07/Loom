@@ -26,6 +26,7 @@ from loom.errors import ProviderError
 
 _LAZY: dict[str, str] = {
     "openai": "loom.batch_providers.openai_batch",
+    "anthropic": "loom.batch_providers.anthropic_batch",
 }
 
 _LOADED: dict[str, ModuleType] = {}
