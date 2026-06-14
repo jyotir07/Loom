@@ -557,6 +557,65 @@ candidate call goes through the normal `generate()` path (cache,
 dedup, retry). Cache hits on the cheap candidate short-circuit the
 chain at zero cost.
 
+### Cross-vendor failover
+
+The same Router primitive doubles as failover: declare a starting model
+and let Loom fall through cross-vendor equivalents if the primary
+errors. Loom ships a small opinionated `EquivalenceMap` keyed by tier
+(`text/nano`, `text/cheap`, `text/standard`, `text/frontier`); each
+tier groups the models from different vendors that can stand in for
+each other.
+
+```python
+from loom import Loom, Router
+
+# gpt-4o-mini, falling back through Anthropic / Gemini / DeepSeek if
+# OpenAI is down or rate-limiting.
+router = Router.failover(
+    provider="openai", modality="text", model="gpt-4o-mini",
+)
+
+client = Loom.from_env()
+result = client.route(router, prompt=user_question)
+print(result["_router"]["used"])    # which vendor actually answered
+```
+
+Custom equivalence map (your shop's own opinion about who's equivalent
+to whom):
+
+```python
+from loom import EquivalenceMap, Router
+
+my_map = EquivalenceMap({
+    "text/cheap": [
+        ("openai", "text", "gpt-4o-mini"),
+        ("deepseek", "text", "deepseek-v3"),
+    ],
+})
+router = Router.failover(
+    provider="openai", modality="text", model="gpt-4o-mini",
+    equivalence=my_map,
+)
+```
+
+`Router.failover(...)` also accepts:
+
+- `validator=fn` — same hook as `Router(...)`. Use it to layer a quality
+  check on top of failover (vendor fell over *or* the answer was bad).
+- `extra_candidates=[...]` — appended after the cross-vendor equivalents.
+  Useful for "and if everything else fails, escalate to the expensive
+  model" trailing fallbacks.
+
+If the starting model isn't in any tier of the equivalence map,
+`Router.failover(...)` returns a one-candidate Router — equivalent to a
+plain `client.generate(...)` call but still composes with retry, cache,
+and dedup through `client.route(...)`.
+
+`Router.failover` is sugar over `Router`. Under the hood the failover
+router is a regular Router with the candidates pre-populated from the
+equivalence map; everything documented under "Smart model routing"
+above (result trace, validator rules, async surface) applies verbatim.
+
 ### What's still pending in Phase 3
 
 The roadmap items not yet implemented in this branch:
@@ -565,8 +624,6 @@ The roadmap items not yet implemented in this branch:
   from header/block-based caching; needs its own surface)
 - **Batch API: more vendors** (Anthropic and Gemini batch adapters —
   OpenAI is wired up)
-- **Cross-vendor failover** (the "failover" half of retry-and-failover —
-  requires an equivalent-models map that doesn't exist yet)
 - **Observability dashboard** (per-project / per-model cost reporting UI)
 - **Centralized key vault integration** (AWS / GCP / Vault backends for `api_keys`)
 - **Public docs site** and **semver stability commitment** (release-time concerns)
