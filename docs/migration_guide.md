@@ -363,9 +363,11 @@ they'll never actually answer).
 
 ### Bulk / overnight jobs — use the Batch API
 
-For workloads that can tolerate ~24h latency, OpenAI's batch endpoint
-is ~50% cheaper than real-time. Bulk migrations, embedding backfills,
-overnight analytics — all good candidates.
+For workloads that can tolerate ~24h latency, vendor batch endpoints
+are ~50% cheaper than real-time. Bulk migrations, embedding backfills,
+overnight analytics — all good candidates. OpenAI and Anthropic batch
+adapters ship today; both use the same `submit_batch` / `BatchHandle`
+surface.
 
 ```python
 from loom import Loom, BatchRequest
