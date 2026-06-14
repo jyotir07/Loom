@@ -1,0 +1,2133 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="One contract for every AI vendor.">
+      
+      
+      
+        <link rel="canonical" href="https://jyotir07.github.io/Loom/api_reference/">
+      
+      
+        <link rel="prev" href="../migration_guide/">
+      
+      
+        <link rel="next" href="../stability/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>API reference - Loom</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#loom-api-reference" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Loom" class="md-header__button md-logo" aria-label="Loom" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Loom
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              API reference
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/jyotir07/Loom" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    jyotir07/Loom
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../migration_guide/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Getting started
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="./" class="md-tabs__link">
+        
+  
+  
+    
+  
+  API reference
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../stability/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Stability
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../what-to-do/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  What to do with Loom
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../roadmap/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Roadmap
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../diag/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Architecture
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Loom" class="md-nav__button md-logo" aria-label="Loom" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Loom
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/jyotir07/Loom" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    jyotir07/Loom
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../migration_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API reference
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#quick-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick reference
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#loomgenerate-dict" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        loom.generate(...) -&gt; dict
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#loomagenerate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        loom.agenerate(...)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#loomloom-sync-client" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        loom.Loom — sync client
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#loomasyncloom-async-client" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        loom.AsyncLoom — async client
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#loomcatalog-model-catalog" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        loom.Catalog — model catalog
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="loom.Catalog — model catalog">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pluggable-backends" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pluggable backends
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#response-shapes-loomtypes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Response shapes (loom.types)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#error-taxonomy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Error taxonomy
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#logging" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Logging
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-vault-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key vault integration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#observability-dashboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Observability dashboard
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#optimization-layer-phase-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Optimization layer (Phase 3)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Optimization layer (Phase 3)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#retry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Retry
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#response-cache" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Response cache
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#request-deduplication" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Request deduplication
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#order-of-operations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Order of operations
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#vendor-native-prompt-caching" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Vendor-native prompt caching
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gemini-context-caching" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Gemini context caching
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#batch-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Batch API
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#smart-model-routing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Smart model routing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cross-vendor-failover" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cross-vendor failover
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#whats-still-pending-in-phase-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What's still pending in Phase 3
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#provider-context-advanced" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Provider context (advanced)
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../stability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Stability
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../what-to-do/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    What to do with Loom
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    What to do with Loom
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../what-to-do/observability_dashboard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Observability dashboard
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../roadmap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../diag/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#quick-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick reference
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#loomgenerate-dict" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        loom.generate(...) -&gt; dict
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#loomagenerate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        loom.agenerate(...)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#loomloom-sync-client" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        loom.Loom — sync client
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#loomasyncloom-async-client" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        loom.AsyncLoom — async client
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#loomcatalog-model-catalog" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        loom.Catalog — model catalog
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="loom.Catalog — model catalog">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pluggable-backends" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pluggable backends
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#response-shapes-loomtypes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Response shapes (loom.types)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#error-taxonomy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Error taxonomy
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#logging" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Logging
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-vault-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key vault integration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#observability-dashboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Observability dashboard
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#optimization-layer-phase-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Optimization layer (Phase 3)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Optimization layer (Phase 3)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#retry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Retry
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#response-cache" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Response cache
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#request-deduplication" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Request deduplication
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#order-of-operations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Order of operations
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#vendor-native-prompt-caching" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Vendor-native prompt caching
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gemini-context-caching" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Gemini context caching
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#batch-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Batch API
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#smart-model-routing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Smart model routing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cross-vendor-failover" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cross-vendor failover
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#whats-still-pending-in-phase-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What's still pending in Phase 3
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#provider-context-advanced" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Provider context (advanced)
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="loom-api-reference">Loom — API reference<a class="headerlink" href="#loom-api-reference" title="Permanent link">&para;</a></h1>
+<p>This is the surface every consuming project will touch. Everything not
+listed here is implementation detail and subject to change.</p>
+<hr />
+<h2 id="quick-reference">Quick reference<a class="headerlink" href="#quick-reference" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Path</th>
+<th>What it is</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>loom.generate(...)</code></td>
+<td>Sync convenience — runs on a default <code>Loom.from_env()</code></td>
+</tr>
+<tr>
+<td><code>loom.agenerate(...)</code></td>
+<td>Async convenience — runs on a default <code>AsyncLoom.from_env()</code></td>
+</tr>
+<tr>
+<td><code>loom.Loom</code></td>
+<td>The sync client class</td>
+</tr>
+<tr>
+<td><code>loom.AsyncLoom</code></td>
+<td>The async client class</td>
+</tr>
+<tr>
+<td><code>loom.Catalog</code></td>
+<td>The catalog of providers/modalities/models</td>
+</tr>
+<tr>
+<td><code>loom.TextResponse</code> / <code>loom.ImageResponse</code></td>
+<td>Response TypedDicts</td>
+</tr>
+<tr>
+<td><code>loom.LoomError</code> and subclasses</td>
+<td>Error taxonomy</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="loomgenerate-dict"><code>loom.generate(...) -&gt; dict</code><a class="headerlink" href="#loomgenerate-dict" title="Permanent link">&para;</a></h2>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">loom</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="o">*</span><span class="p">,</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">provider</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>     <span class="c1"># catalog key, e.g. &quot;openai&quot;</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">modality</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>     <span class="c1"># &quot;text&quot; | &quot;image&quot;</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">model</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>        <span class="c1"># catalog model id, e.g. &quot;gpt-4o-mini&quot;</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">prompt</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">params</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span>
+</span></code></pre></div>
+<p>Caller-supplied <code>params</code> are merged on top of any catalog defaults
+(catalog defaults are overridden by caller values on key conflict).</p>
+<p>Returns one of:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Text</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="p">{</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    <span class="s2">&quot;kind&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    <span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;...&quot;</span><span class="p">,</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>    <span class="s2">&quot;provider&quot;</span><span class="p">:</span> <span class="s2">&quot;openai&quot;</span><span class="p">,</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>    <span class="s2">&quot;model&quot;</span><span class="p">:</span> <span class="s2">&quot;gpt-4o-mini&quot;</span><span class="p">,</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>    <span class="s2">&quot;upstream_model&quot;</span><span class="p">:</span> <span class="s2">&quot;gpt-4o-mini&quot;</span><span class="p">,</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>    <span class="s2">&quot;usage&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;input_tokens&quot;</span><span class="p">:</span> <span class="mi">12</span><span class="p">,</span> <span class="s2">&quot;output_tokens&quot;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span> <span class="s2">&quot;total_tokens&quot;</span><span class="p">:</span> <span class="mi">20</span><span class="p">},</span>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>    <span class="s2">&quot;cost&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;usd&quot;</span><span class="p">:</span> <span class="mf">0.0000038</span><span class="p">,</span> <span class="s2">&quot;local&quot;</span><span class="p">:</span> <span class="mf">0.000316</span><span class="p">,</span> <span class="s2">&quot;local_currency&quot;</span><span class="p">:</span> <span class="s2">&quot;INR&quot;</span><span class="p">},</span>
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="p">}</span>
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="c1"># Image</span>
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="p">{</span>
+</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>    <span class="s2">&quot;kind&quot;</span><span class="p">:</span> <span class="s2">&quot;image&quot;</span><span class="p">,</span>
+</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>    <span class="s2">&quot;images&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;mime_type&quot;</span><span class="p">:</span> <span class="s2">&quot;image/png&quot;</span><span class="p">,</span> <span class="s2">&quot;data_b64&quot;</span><span class="p">:</span> <span class="s2">&quot;...&quot;</span><span class="p">}],</span>
+</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>    <span class="s2">&quot;provider&quot;</span><span class="p">:</span> <span class="s2">&quot;openai&quot;</span><span class="p">,</span>
+</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>    <span class="s2">&quot;model&quot;</span><span class="p">:</span> <span class="s2">&quot;gpt-image-1-low&quot;</span><span class="p">,</span>
+</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>    <span class="s2">&quot;upstream_model&quot;</span><span class="p">:</span> <span class="s2">&quot;gpt-image-1&quot;</span><span class="p">,</span>
+</span><span id="__span-1-19"><a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a>    <span class="s2">&quot;cost&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;usd&quot;</span><span class="p">:</span> <span class="mf">0.0128</span><span class="p">,</span> <span class="s2">&quot;local&quot;</span><span class="p">:</span> <span class="mf">1.0602</span><span class="p">,</span> <span class="s2">&quot;local_currency&quot;</span><span class="p">:</span> <span class="s2">&quot;INR&quot;</span><span class="p">},</span>
+</span><span id="__span-1-20"><a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a><span class="p">}</span>
+</span></code></pre></div>
+<p><code>usage</code> is only present when the provider reports tokens (text). <code>cost</code>
+is only present when the catalog has pricing for the model.</p>
+<hr />
+<h2 id="loomagenerate"><code>loom.agenerate(...)</code><a class="headerlink" href="#loomagenerate" title="Permanent link">&para;</a></h2>
+<p>Identical signature, returns a coroutine. Inside FastAPI / Celery /
+Lambda, <code>await loom.agenerate(...)</code>.</p>
+<hr />
+<h2 id="loomloom-sync-client"><code>loom.Loom</code> — sync client<a class="headerlink" href="#loomloom-sync-client" title="Permanent link">&para;</a></h2>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">client</span> <span class="o">=</span> <span class="n">Loom</span><span class="p">(</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>    <span class="o">*</span><span class="p">,</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>    <span class="n">catalog</span><span class="p">:</span> <span class="n">Catalog</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>    <span class="n">api_keys</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>    <span class="n">local_currency</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;INR&quot;</span><span class="p">,</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>    <span class="n">local_to_usd</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="mi">83</span><span class="p">,</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>    <span class="n">retry</span><span class="p">:</span> <span class="n">RetryPolicy</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">RetryPolicy</span><span class="p">(),</span>  <span class="c1"># set to None to disable</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>    <span class="n">cache</span><span class="p">:</span> <span class="n">CacheBackend</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>           <span class="c1"># off by default</span>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>    <span class="n">dedup</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="p">)</span>
+</span></code></pre></div>
+<ul>
+<li><code>catalog</code> — <code>Catalog</code> instance. Defaults to the bundled in-memory catalog.</li>
+<li><code>api_keys</code> — maps env-var name → key value, e.g.
+  <code>{"OPENAI_API_KEY": "sk-..."}</code>. Wins over the process environment.</li>
+<li><code>local_currency</code> — label used on <code>cost.local_currency</code>.</li>
+<li><code>local_to_usd</code> — multiplier converting one unit of local currency
+  to USD. At 1 USD ≈ 83 INR, the default is <code>1/83 ≈ 0.012</code>.</li>
+<li><code>retry</code> — <code>RetryPolicy</code> instance; default is <code>RetryPolicy()</code>. Pass
+  <code>None</code> to disable retries entirely. See "Optimization layer" below.</li>
+<li><code>cache</code> — <code>CacheBackend</code> (e.g. <code>InMemoryCache()</code> or <code>RedisCache()</code>);
+  cache is OFF unless explicitly passed in.</li>
+<li><code>dedup</code> — single-flight on identical concurrent calls. On by default.</li>
+</ul>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">Loom</span><span class="o">.</span><span class="n">from_env</span><span class="p">(</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>    <span class="o">*</span><span class="p">,</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>    <span class="n">dotenv_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>    <span class="n">catalog</span><span class="p">:</span> <span class="n">Catalog</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>    <span class="n">api_keys</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>    <span class="n">local_currency</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;INR&quot;</span><span class="p">,</span>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>    <span class="n">local_to_usd</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="mi">83</span><span class="p">,</span>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Loom</span>
+</span></code></pre></div>
+<p>Loads <code>.env</code> (the file at <code>dotenv_path</code> if given, else <code>./.env</code> if it
+exists) — already-set environment variables are not overridden — and
+returns a <code>Loom</code>. Use this when keys live in <code>.env</code>/the environment.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">client</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>    <span class="o">*</span><span class="p">,</span> <span class="n">provider</span><span class="p">,</span> <span class="n">modality</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">prompt</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="kc">None</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span>
+</span></code></pre></div>
+<p>Same shape as <code>loom.generate(...)</code> above.</p>
+<hr />
+<h2 id="loomasyncloom-async-client"><code>loom.AsyncLoom</code> — async client<a class="headerlink" href="#loomasyncloom-async-client" title="Permanent link">&para;</a></h2>
+<p>Subclass of <code>Loom</code> with the same constructor and <code>from_env()</code>
+classmethod. <code>generate(...)</code> is a coroutine.</p>
+<p>The dispatcher prefers a provider's native <code>agenerate(...)</code> if it has
+one, and falls back to running the sync <code>generate(...)</code> in a thread via
+<code>asyncio.to_thread</code> for providers without native async support.</p>
+<hr />
+<h2 id="loomcatalog-model-catalog"><code>loom.Catalog</code> — model catalog<a class="headerlink" href="#loomcatalog-model-catalog" title="Permanent link">&para;</a></h2>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">Catalog</span><span class="p">(</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>    <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>    <span class="o">*</span><span class="p">,</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>    <span class="n">backend</span><span class="p">:</span> <span class="n">CatalogBackend</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="p">)</span>
+</span></code></pre></div>
+<p><code>data</code> is an in-memory dict in Loom's schema. <code>backend</code> is anything
+with a <code>.load() -&gt; dict</code> method. With neither, the bundled catalog
+is used.</p>
+<p>Convenience constructors:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="n">Catalog</span><span class="o">.</span><span class="n">from_yaml</span><span class="p">(</span><span class="s2">&quot;models.yaml&quot;</span><span class="p">)</span>    <span class="c1"># YamlBackend</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="n">Catalog</span><span class="o">.</span><span class="n">from_mapping</span><span class="p">(</span><span class="n">my_dict</span><span class="p">)</span>       <span class="c1"># MemoryBackend</span>
+</span></code></pre></div>
+<p>Methods:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="n">c</span><span class="o">.</span><span class="n">providers</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="n">c</span><span class="o">.</span><span class="n">modalities</span><span class="p">(</span><span class="n">provider</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="n">c</span><span class="o">.</span><span class="n">models</span><span class="p">(</span><span class="n">provider</span><span class="p">,</span> <span class="n">modality</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="n">c</span><span class="o">.</span><span class="n">resolve</span><span class="p">(</span><span class="n">provider</span><span class="p">,</span> <span class="n">modality</span><span class="p">,</span> <span class="n">model_id</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="n">upstream_model</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+</span></code></pre></div>
+<p><code>resolve</code> raises <code>loom.ModelNotFoundError</code> if the triple isn't present.</p>
+<h3 id="pluggable-backends">Pluggable backends<a class="headerlink" href="#pluggable-backends" title="Permanent link">&para;</a></h3>
+<p><code>loom.catalog.backends</code> ships:</p>
+<ul>
+<li><code>MemoryBackend(data)</code> — wraps an in-memory dict.</li>
+<li><code>YamlBackend(path)</code> — reads a YAML file. Needs <code>pip install loom[yaml]</code>.</li>
+</ul>
+<p>Postgres backend lands when an internal project asks for it; the
+<code>CatalogBackend</code> protocol is intentionally tiny so it'll be a small
+addition.</p>
+<hr />
+<h2 id="response-shapes-loomtypes">Response shapes (<code>loom.types</code>)<a class="headerlink" href="#response-shapes-loomtypes" title="Permanent link">&para;</a></h2>
+<p>These are <code>TypedDict</code>s — runtime-equivalent to dicts, but they give
+IDE autocomplete and mypy/pyright coverage.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">Usage</span><span class="p">(</span><span class="n">TypedDict</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>    <span class="n">input_tokens</span><span class="p">:</span> <span class="nb">int</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>    <span class="n">output_tokens</span><span class="p">:</span> <span class="nb">int</span>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>    <span class="n">total_tokens</span><span class="p">:</span> <span class="nb">int</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="k">class</span><span class="w"> </span><span class="nc">Cost</span><span class="p">(</span><span class="n">TypedDict</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>    <span class="n">usd</span><span class="p">:</span> <span class="nb">float</span>
+</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>    <span class="n">local</span><span class="p">:</span> <span class="nb">float</span>
+</span><span id="__span-8-9"><a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a>    <span class="n">local_currency</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="__span-8-10"><a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a>
+</span><span id="__span-8-11"><a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a><span class="k">class</span><span class="w"> </span><span class="nc">ImagePayload</span><span class="p">(</span><span class="n">TypedDict</span><span class="p">):</span>
+</span><span id="__span-8-12"><a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a>    <span class="n">mime_type</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="__span-8-13"><a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a>    <span class="n">data_b64</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="__span-8-14"><a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a>
+</span><span id="__span-8-15"><a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a><span class="k">class</span><span class="w"> </span><span class="nc">TextResponse</span><span class="p">(</span><span class="n">TypedDict</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+</span><span id="__span-8-16"><a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a>    <span class="n">kind</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;text&quot;</span><span class="p">]</span>
+</span><span id="__span-8-17"><a id="__codelineno-8-17" name="__codelineno-8-17" href="#__codelineno-8-17"></a>    <span class="n">text</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="__span-8-18"><a id="__codelineno-8-18" name="__codelineno-8-18" href="#__codelineno-8-18"></a>    <span class="n">provider</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="__span-8-19"><a id="__codelineno-8-19" name="__codelineno-8-19" href="#__codelineno-8-19"></a>    <span class="n">model</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="__span-8-20"><a id="__codelineno-8-20" name="__codelineno-8-20" href="#__codelineno-8-20"></a>    <span class="n">upstream_model</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="__span-8-21"><a id="__codelineno-8-21" name="__codelineno-8-21" href="#__codelineno-8-21"></a>    <span class="n">usage</span><span class="p">:</span> <span class="n">Usage</span>
+</span><span id="__span-8-22"><a id="__codelineno-8-22" name="__codelineno-8-22" href="#__codelineno-8-22"></a>    <span class="n">cost</span><span class="p">:</span> <span class="n">Cost</span>
+</span><span id="__span-8-23"><a id="__codelineno-8-23" name="__codelineno-8-23" href="#__codelineno-8-23"></a>
+</span><span id="__span-8-24"><a id="__codelineno-8-24" name="__codelineno-8-24" href="#__codelineno-8-24"></a><span class="k">class</span><span class="w"> </span><span class="nc">ImageResponse</span><span class="p">(</span><span class="n">TypedDict</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+</span><span id="__span-8-25"><a id="__codelineno-8-25" name="__codelineno-8-25" href="#__codelineno-8-25"></a>    <span class="n">kind</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;image&quot;</span><span class="p">]</span>
+</span><span id="__span-8-26"><a id="__codelineno-8-26" name="__codelineno-8-26" href="#__codelineno-8-26"></a>    <span class="n">images</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ImagePayload</span><span class="p">]</span>
+</span><span id="__span-8-27"><a id="__codelineno-8-27" name="__codelineno-8-27" href="#__codelineno-8-27"></a>    <span class="n">provider</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="__span-8-28"><a id="__codelineno-8-28" name="__codelineno-8-28" href="#__codelineno-8-28"></a>    <span class="n">model</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="__span-8-29"><a id="__codelineno-8-29" name="__codelineno-8-29" href="#__codelineno-8-29"></a>    <span class="n">upstream_model</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="__span-8-30"><a id="__codelineno-8-30" name="__codelineno-8-30" href="#__codelineno-8-30"></a>    <span class="n">usage</span><span class="p">:</span> <span class="n">Usage</span>
+</span><span id="__span-8-31"><a id="__codelineno-8-31" name="__codelineno-8-31" href="#__codelineno-8-31"></a>    <span class="n">cost</span><span class="p">:</span> <span class="n">Cost</span>
+</span></code></pre></div>
+<hr />
+<h2 id="error-taxonomy">Error taxonomy<a class="headerlink" href="#error-taxonomy" title="Permanent link">&para;</a></h2>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="n">loom</span><span class="o">.</span><span class="n">LoomError</span>              <span class="c1"># base for everything Loom raises</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="err">├──</span> <span class="n">loom</span><span class="o">.</span><span class="n">ProviderError</span>      <span class="c1"># provider-side problem</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="err">│</span>   <span class="err">├──</span> <span class="n">loom</span><span class="o">.</span><span class="n">AuthError</span>      <span class="c1"># missing/invalid API key</span>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="err">│</span>   <span class="err">└──</span> <span class="n">loom</span><span class="o">.</span><span class="n">RateLimitError</span> <span class="c1"># provider rate-limited the request</span>
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="err">└──</span> <span class="n">loom</span><span class="o">.</span><span class="n">ModelNotFoundError</span> <span class="c1"># catalog doesn&#39;t know that triple</span>
+</span></code></pre></div>
+<p>Idiomatic usage:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">loom</span><span class="w"> </span><span class="kn">import</span> <span class="n">generate</span><span class="p">,</span> <span class="n">AuthError</span><span class="p">,</span> <span class="n">RateLimitError</span><span class="p">,</span> <span class="n">ProviderError</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="k">try</span><span class="p">:</span>
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>    <span class="n">result</span> <span class="o">=</span> <span class="n">generate</span><span class="p">(</span><span class="n">provider</span><span class="o">=...</span><span class="p">,</span> <span class="n">modality</span><span class="o">=...</span><span class="p">,</span> <span class="n">model</span><span class="o">=...</span><span class="p">,</span> <span class="n">prompt</span><span class="o">=...</span><span class="p">)</span>
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="k">except</span> <span class="n">AuthError</span><span class="p">:</span>
+</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>    <span class="c1"># No key — surface a config error to your caller</span>
+</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>    <span class="o">...</span>
+</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="k">except</span> <span class="n">RateLimitError</span><span class="p">:</span>
+</span><span id="__span-10-9"><a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a>    <span class="c1"># Back off and retry, or fall back to another provider</span>
+</span><span id="__span-10-10"><a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a>    <span class="o">...</span>
+</span><span id="__span-10-11"><a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a><span class="k">except</span> <span class="n">ProviderError</span><span class="p">:</span>
+</span><span id="__span-10-12"><a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a>    <span class="c1"># Anything else from the upstream call</span>
+</span><span id="__span-10-13"><a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a>    <span class="o">...</span>
+</span></code></pre></div>
+<hr />
+<h2 id="logging">Logging<a class="headerlink" href="#logging" title="Permanent link">&para;</a></h2>
+<p>Loom emits one log line per call on the <code>loom</code> logger.</p>
+<ul>
+<li>Successful calls log at <code>INFO</code>.</li>
+<li>Failed calls log at <code>WARNING</code>.</li>
+</ul>
+<p>Every record has a <code>loom</code> field on its <code>__dict__</code> (use
+<code>record.__dict__["loom"]</code>) with the full structured payload:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="p">{</span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>    <span class="s2">&quot;provider&quot;</span><span class="p">:</span> <span class="s2">&quot;openai&quot;</span><span class="p">,</span>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>    <span class="s2">&quot;modality&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>    <span class="s2">&quot;model&quot;</span><span class="p">:</span> <span class="s2">&quot;gpt-4o-mini&quot;</span><span class="p">,</span>
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>    <span class="s2">&quot;upstream_model&quot;</span><span class="p">:</span> <span class="s2">&quot;gpt-4o-mini&quot;</span><span class="p">,</span>
+</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>    <span class="s2">&quot;latency_ms&quot;</span><span class="p">:</span> <span class="mf">312.4</span><span class="p">,</span>
+</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>    <span class="s2">&quot;input_tokens&quot;</span><span class="p">:</span> <span class="mi">12</span><span class="p">,</span>
+</span><span id="__span-11-8"><a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>    <span class="s2">&quot;output_tokens&quot;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
+</span><span id="__span-11-9"><a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a>    <span class="s2">&quot;total_tokens&quot;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
+</span><span id="__span-11-10"><a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a>    <span class="s2">&quot;cost_usd&quot;</span><span class="p">:</span> <span class="mf">0.0000038</span><span class="p">,</span>
+</span><span id="__span-11-11"><a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a>    <span class="s2">&quot;cost_local&quot;</span><span class="p">:</span> <span class="mf">0.000316</span><span class="p">,</span>
+</span><span id="__span-11-12"><a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a>    <span class="s2">&quot;cost_currency&quot;</span><span class="p">:</span> <span class="s2">&quot;INR&quot;</span><span class="p">,</span>
+</span><span id="__span-11-13"><a id="__codelineno-11-13" name="__codelineno-11-13" href="#__codelineno-11-13"></a>    <span class="s2">&quot;ok&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+</span><span id="__span-11-14"><a id="__codelineno-11-14" name="__codelineno-11-14" href="#__codelineno-11-14"></a><span class="p">}</span>
+</span></code></pre></div>
+<p>Loom does not configure handlers itself. Wire it up like any other
+stdlib logger:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="c1"># or, for JSON output, route the &quot;loom&quot; logger to your JSON handler.</span>
+</span></code></pre></div>
+<p>For a queryable persistent sink + dashboard see the next section.</p>
+<hr />
+<h2 id="key-vault-integration">Key vault integration<a class="headerlink" href="#key-vault-integration" title="Permanent link">&para;</a></h2>
+<p>Vendor API keys can resolve from a key vault when <code>.env</code> / process
+environment isn't an option (compliance, prod hardening, key rotation).
+A <code>KeyVault</code> is a third source consulted by <code>require_env</code>:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>1. programmatic api_keys passed into Loom(api_keys={...})
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>2. the process environment variable of the same name
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>3. the configured KeyVault.get(name)   &lt;-- new
+</span></code></pre></div>
+<p>Local overrides still win — env-var values shadow vault values, so a
+dev can drop a key into their shell without touching infra.</p>
+<p>Bundled backends:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">loom</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>    <span class="n">Loom</span><span class="p">,</span>
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>    <span class="n">InMemoryVault</span><span class="p">,</span>
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>    <span class="n">AWSSecretsManagerVault</span><span class="p">,</span>
+</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>    <span class="n">GCPSecretManagerVault</span><span class="p">,</span>
+</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>    <span class="n">HashiCorpVaultBackend</span><span class="p">,</span>
+</span><span id="__span-14-7"><a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a><span class="p">)</span>
+</span><span id="__span-14-8"><a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a>
+</span><span id="__span-14-9"><a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a><span class="c1"># In-memory — for tests / programmatic boot.</span>
+</span><span id="__span-14-10"><a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a><span class="n">vault</span> <span class="o">=</span> <span class="n">InMemoryVault</span><span class="p">({</span><span class="s2">&quot;OPENAI_API_KEY&quot;</span><span class="p">:</span> <span class="s2">&quot;sk-...&quot;</span><span class="p">})</span>
+</span><span id="__span-14-11"><a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a>
+</span><span id="__span-14-12"><a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a><span class="c1"># AWS Secrets Manager — one secret per env-var.</span>
+</span><span id="__span-14-13"><a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a><span class="n">vault</span> <span class="o">=</span> <span class="n">AWSSecretsManagerVault</span><span class="p">(</span>
+</span><span id="__span-14-14"><a id="__codelineno-14-14" name="__codelineno-14-14" href="#__codelineno-14-14"></a>    <span class="n">region_name</span><span class="o">=</span><span class="s2">&quot;us-east-1&quot;</span><span class="p">,</span>
+</span><span id="__span-14-15"><a id="__codelineno-14-15" name="__codelineno-14-15" href="#__codelineno-14-15"></a>    <span class="n">prefix</span><span class="o">=</span><span class="s2">&quot;prod/loom/&quot;</span><span class="p">,</span>          <span class="c1"># secret id = prefix + env_var_name</span>
+</span><span id="__span-14-16"><a id="__codelineno-14-16" name="__codelineno-14-16" href="#__codelineno-14-16"></a>    <span class="n">cache_ttl_seconds</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span>        <span class="c1"># in-process cache; default 5 min</span>
+</span><span id="__span-14-17"><a id="__codelineno-14-17" name="__codelineno-14-17" href="#__codelineno-14-17"></a><span class="p">)</span>
+</span><span id="__span-14-18"><a id="__codelineno-14-18" name="__codelineno-14-18" href="#__codelineno-14-18"></a>
+</span><span id="__span-14-19"><a id="__codelineno-14-19" name="__codelineno-14-19" href="#__codelineno-14-19"></a><span class="c1"># AWS Secrets Manager — one JSON secret holds many keys.</span>
+</span><span id="__span-14-20"><a id="__codelineno-14-20" name="__codelineno-14-20" href="#__codelineno-14-20"></a><span class="n">vault</span> <span class="o">=</span> <span class="n">AWSSecretsManagerVault</span><span class="p">(</span>
+</span><span id="__span-14-21"><a id="__codelineno-14-21" name="__codelineno-14-21" href="#__codelineno-14-21"></a>    <span class="n">region_name</span><span class="o">=</span><span class="s2">&quot;us-east-1&quot;</span><span class="p">,</span>
+</span><span id="__span-14-22"><a id="__codelineno-14-22" name="__codelineno-14-22" href="#__codelineno-14-22"></a>    <span class="n">json_keyed</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+</span><span id="__span-14-23"><a id="__codelineno-14-23" name="__codelineno-14-23" href="#__codelineno-14-23"></a>    <span class="n">json_secret_name</span><span class="o">=</span><span class="s2">&quot;prod/loom/bundle&quot;</span><span class="p">,</span>
+</span><span id="__span-14-24"><a id="__codelineno-14-24" name="__codelineno-14-24" href="#__codelineno-14-24"></a><span class="p">)</span>
+</span><span id="__span-14-25"><a id="__codelineno-14-25" name="__codelineno-14-25" href="#__codelineno-14-25"></a><span class="c1"># value example:</span>
+</span><span id="__span-14-26"><a id="__codelineno-14-26" name="__codelineno-14-26" href="#__codelineno-14-26"></a><span class="c1"># {&quot;OPENAI_API_KEY&quot;: &quot;sk-...&quot;, &quot;ANTHROPIC_API_KEY&quot;: &quot;sk-...&quot;}</span>
+</span><span id="__span-14-27"><a id="__codelineno-14-27" name="__codelineno-14-27" href="#__codelineno-14-27"></a>
+</span><span id="__span-14-28"><a id="__codelineno-14-28" name="__codelineno-14-28" href="#__codelineno-14-28"></a><span class="c1"># GCP Secret Manager — one secret per env-var.</span>
+</span><span id="__span-14-29"><a id="__codelineno-14-29" name="__codelineno-14-29" href="#__codelineno-14-29"></a><span class="n">vault</span> <span class="o">=</span> <span class="n">GCPSecretManagerVault</span><span class="p">(</span>
+</span><span id="__span-14-30"><a id="__codelineno-14-30" name="__codelineno-14-30" href="#__codelineno-14-30"></a>    <span class="n">project_id</span><span class="o">=</span><span class="s2">&quot;my-project&quot;</span><span class="p">,</span>
+</span><span id="__span-14-31"><a id="__codelineno-14-31" name="__codelineno-14-31" href="#__codelineno-14-31"></a>    <span class="n">prefix</span><span class="o">=</span><span class="s2">&quot;loom-&quot;</span><span class="p">,</span>
+</span><span id="__span-14-32"><a id="__codelineno-14-32" name="__codelineno-14-32" href="#__codelineno-14-32"></a>    <span class="n">version</span><span class="o">=</span><span class="s2">&quot;latest&quot;</span><span class="p">,</span>
+</span><span id="__span-14-33"><a id="__codelineno-14-33" name="__codelineno-14-33" href="#__codelineno-14-33"></a><span class="p">)</span>
+</span><span id="__span-14-34"><a id="__codelineno-14-34" name="__codelineno-14-34" href="#__codelineno-14-34"></a>
+</span><span id="__span-14-35"><a id="__codelineno-14-35" name="__codelineno-14-35" href="#__codelineno-14-35"></a><span class="c1"># HashiCorp Vault (KV v2 engine).</span>
+</span><span id="__span-14-36"><a id="__codelineno-14-36" name="__codelineno-14-36" href="#__codelineno-14-36"></a><span class="n">vault</span> <span class="o">=</span> <span class="n">HashiCorpVaultBackend</span><span class="p">(</span>
+</span><span id="__span-14-37"><a id="__codelineno-14-37" name="__codelineno-14-37" href="#__codelineno-14-37"></a>    <span class="n">url</span><span class="o">=</span><span class="s2">&quot;https://vault.internal:8200&quot;</span><span class="p">,</span>
+</span><span id="__span-14-38"><a id="__codelineno-14-38" name="__codelineno-14-38" href="#__codelineno-14-38"></a>    <span class="n">token</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;VAULT_TOKEN&quot;</span><span class="p">],</span>
+</span><span id="__span-14-39"><a id="__codelineno-14-39" name="__codelineno-14-39" href="#__codelineno-14-39"></a>    <span class="n">mount_path</span><span class="o">=</span><span class="s2">&quot;secret&quot;</span><span class="p">,</span>
+</span><span id="__span-14-40"><a id="__codelineno-14-40" name="__codelineno-14-40" href="#__codelineno-14-40"></a>    <span class="n">secret_key</span><span class="o">=</span><span class="s2">&quot;value&quot;</span><span class="p">,</span>           <span class="c1"># which key inside the KV entry holds the secret</span>
+</span><span id="__span-14-41"><a id="__codelineno-14-41" name="__codelineno-14-41" href="#__codelineno-14-41"></a><span class="p">)</span>
+</span><span id="__span-14-42"><a id="__codelineno-14-42" name="__codelineno-14-42" href="#__codelineno-14-42"></a>
+</span><span id="__span-14-43"><a id="__codelineno-14-43" name="__codelineno-14-43" href="#__codelineno-14-43"></a><span class="n">client</span> <span class="o">=</span> <span class="n">Loom</span><span class="o">.</span><span class="n">from_env</span><span class="p">(</span><span class="n">vault</span><span class="o">=</span><span class="n">vault</span><span class="p">)</span>
+</span></code></pre></div>
+<p><code>KeyVault</code> is a Protocol:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">KeyVault</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span> <span class="o">...</span>
+</span></code></pre></div>
+<p>Roll your own backend by implementing <code>get</code>. The bundled external
+backends share a base class that adds an in-process TTL cache and
+fail-soft behavior — vault outages return <code>None</code>, letting
+<code>require_env</code> surface a clean <code>AuthError</code> instead of leaking a vendor
+SDK trace.</p>
+<p>SDK dependencies (<code>boto3</code>, <code>google-cloud-secret-manager</code>, <code>hvac</code>) are
+lazy-imported. None of them are hard deps; install only what your
+chosen backend needs.</p>
+<hr />
+<h2 id="observability-dashboard">Observability dashboard<a class="headerlink" href="#observability-dashboard" title="Permanent link">&para;</a></h2>
+<p><code>loom.observability</code> ships a SQLite event sink, a logging handler that
+drains the <code>loom</code> logger into the sink, and a read-only Flask
+Blueprint that renders cost / latency / cache / dedup / error
+rollups.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">flask</span><span class="w"> </span><span class="kn">import</span> <span class="n">Flask</span>
+</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">loom.observability</span><span class="w"> </span><span class="kn">import</span> <span class="n">SQLiteSink</span><span class="p">,</span> <span class="n">LoomLogHandler</span><span class="p">,</span> <span class="n">make_dashboard</span>
+</span><span id="__span-16-4"><a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>
+</span><span id="__span-16-5"><a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a><span class="c1"># 1. Persist every Loom call.</span>
+</span><span id="__span-16-6"><a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a><span class="n">sink</span> <span class="o">=</span> <span class="n">SQLiteSink</span><span class="p">(</span><span class="s2">&quot;loom_events.db&quot;</span><span class="p">)</span>
+</span><span id="__span-16-7"><a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a><span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;loom&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">LoomLogHandler</span><span class="p">(</span><span class="n">sink</span><span class="p">))</span>
+</span><span id="__span-16-8"><a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a>
+</span><span id="__span-16-9"><a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a><span class="c1"># 2. Mount the dashboard in any Flask app.</span>
+</span><span id="__span-16-10"><a id="__codelineno-16-10" name="__codelineno-16-10" href="#__codelineno-16-10"></a><span class="n">app</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+</span><span id="__span-16-11"><a id="__codelineno-16-11" name="__codelineno-16-11" href="#__codelineno-16-11"></a><span class="n">app</span><span class="o">.</span><span class="n">register_blueprint</span><span class="p">(</span><span class="n">make_dashboard</span><span class="p">(</span><span class="n">sink</span><span class="p">),</span> <span class="n">url_prefix</span><span class="o">=</span><span class="s2">&quot;/loom-admin&quot;</span><span class="p">)</span>
+</span></code></pre></div>
+<p>The Blueprint exposes:</p>
+<table>
+<thead>
+<tr>
+<th>Route</th>
+<th>What it returns</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>GET /</code></td>
+<td>HTML dashboard (default window: <code>24h</code>)</td>
+</tr>
+<tr>
+<td><code>GET /api/summary?window=</code></td>
+<td>JSON: calls, cost, latency, cache/dedup/error %</td>
+</tr>
+<tr>
+<td><code>GET /api/by-provider?window=</code></td>
+<td>JSON: per-provider rollup, ordered by cost</td>
+</tr>
+<tr>
+<td><code>GET /api/by-model?window=&amp;limit=</code></td>
+<td>JSON: top models by cost</td>
+</tr>
+<tr>
+<td><code>GET /api/recent?limit=</code></td>
+<td>JSON: last N call events</td>
+</tr>
+</tbody>
+</table>
+<p><code>window</code> accepts <code>1h</code>, <code>24h</code>, <code>7d</code>, <code>30d</code>, or <code>all</code>. Unknown values
+fall back to the <code>24h</code> default.</p>
+<p><strong>No auth.</strong> The Blueprint trusts that you've wrapped it in whatever
+your host app already does for login (see the bundled Flask demo's
+<code>before_request</code> hook for an example).</p>
+<p><strong>Threading model.</strong> <code>SQLiteSink</code> keeps one connection guarded by a
+mutex — writes from the logging thread and reads from the dashboard
+request thread serialize through it. Fine for moderate volumes; if
+you need write-side concurrency, swap the sink for a Postgres-backed
+implementation of the <code>EventSink</code> protocol.</p>
+<p><strong>The EventSink Protocol</strong> is intentionally minimal — <code>write(event)</code>
+and <code>fetch(sql=..., params=...)</code> — so callers who want to point the
+dashboard at an existing log warehouse can write a small adapter
+without touching the queries module.</p>
+<hr />
+<h2 id="optimization-layer-phase-3">Optimization layer (Phase 3)<a class="headerlink" href="#optimization-layer-phase-3" title="Permanent link">&para;</a></h2>
+<p>Three primitives ship together and can be combined freely.</p>
+<h3 id="retry">Retry<a class="headerlink" href="#retry" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">loom</span><span class="w"> </span><span class="kn">import</span> <span class="n">Loom</span><span class="p">,</span> <span class="n">RetryPolicy</span>
+</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>
+</span><span id="__span-17-3"><a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="n">client</span> <span class="o">=</span> <span class="n">Loom</span><span class="p">(</span>
+</span><span id="__span-17-4"><a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a>    <span class="n">retry</span><span class="o">=</span><span class="n">RetryPolicy</span><span class="p">(</span>
+</span><span id="__span-17-5"><a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a>        <span class="n">max_attempts</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>        <span class="c1"># total attempts incl. the first</span>
+</span><span id="__span-17-6"><a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a>        <span class="n">base_delay</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>        <span class="c1"># seconds; doubled each attempt</span>
+</span><span id="__span-17-7"><a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a>        <span class="n">max_delay</span><span class="o">=</span><span class="mf">8.0</span><span class="p">,</span>         <span class="c1"># ceiling for the backoff</span>
+</span><span id="__span-17-8"><a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a>        <span class="n">jitter</span><span class="o">=</span><span class="mf">0.25</span><span class="p">,</span>           <span class="c1"># ± fraction of the computed delay</span>
+</span><span id="__span-17-9"><a id="__codelineno-17-9" name="__codelineno-17-9" href="#__codelineno-17-9"></a>    <span class="p">),</span>
+</span><span id="__span-17-10"><a id="__codelineno-17-10" name="__codelineno-17-10" href="#__codelineno-17-10"></a><span class="p">)</span>
+</span></code></pre></div>
+<p>Default policy retries <code>RateLimitError</code> and transient network errors
+(timeouts, <code>ConnectionError</code>, OpenAI/Anthropic SDK <code>APIConnectionError</code>
+/ <code>APITimeoutError</code>). Never retries <code>AuthError</code> or <code>ModelNotFoundError</code>.
+Pass <code>retry=None</code> to disable.</p>
+<h3 id="response-cache">Response cache<a class="headerlink" href="#response-cache" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">loom</span><span class="w"> </span><span class="kn">import</span> <span class="n">Loom</span><span class="p">,</span> <span class="n">InMemoryCache</span><span class="p">,</span> <span class="n">RedisCache</span>
+</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>
+</span><span id="__span-18-3"><a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a><span class="c1"># in-process LRU + TTL</span>
+</span><span id="__span-18-4"><a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a><span class="n">client</span> <span class="o">=</span> <span class="n">Loom</span><span class="p">(</span><span class="n">cache</span><span class="o">=</span><span class="n">InMemoryCache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">10_000</span><span class="p">,</span> <span class="n">ttl</span><span class="o">=</span><span class="mi">3600</span><span class="p">))</span>
+</span><span id="__span-18-5"><a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a>
+</span><span id="__span-18-6"><a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a><span class="c1"># shared across processes</span>
+</span><span id="__span-18-7"><a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a><span class="n">client</span> <span class="o">=</span> <span class="n">Loom</span><span class="p">(</span><span class="n">cache</span><span class="o">=</span><span class="n">RedisCache</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="s2">&quot;redis://prod-redis:6379/0&quot;</span><span class="p">,</span> <span class="n">ttl</span><span class="o">=</span><span class="mi">3600</span><span class="p">))</span>
+</span></code></pre></div>
+<p>Cache key is <code>sha256(canonical(provider, modality, model, prompt, params))</code> —
+param ordering is normalized so dict-key order doesn't poison the key.</p>
+<p>Per-call opt-out:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="n">client</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</span></code></pre></div>
+<p>Cached responses keep their original <code>cost</code> and <code>usage</code> fields so
+spend reporting can distinguish billed calls (no <code>cached</code> log flag)
+from served-from-cache calls (<code>cached=true</code> on the log line).</p>
+<p><code>RedisCache</code> failures (connection drops, serialization issues) degrade
+to "miss / no-op" with a <code>loom.cache</code> warning log, so a Redis outage
+doesn't take down request handling.</p>
+<h3 id="request-deduplication">Request deduplication<a class="headerlink" href="#request-deduplication" title="Permanent link">&para;</a></h3>
+<p>On by default. When N callers issue the same <code>(provider, modality,
+model, prompt, params)</code> concurrently, only the first hits the upstream
+API — the rest wait on the in-flight slot and receive the same result
+(or the same exception). Log lines on the deduped callers carry
+<code>deduped=true</code>.</p>
+<p>Disable with <code>Loom(dedup=False)</code> when you specifically want N
+independent samples for the same prompt.</p>
+<p>Sync and async dedup registries are separate — a sync caller and an
+async caller racing the same prompt do NOT coalesce.</p>
+<h3 id="order-of-operations">Order of operations<a class="headerlink" href="#order-of-operations" title="Permanent link">&para;</a></h3>
+<p>For each <code>generate(...)</code> call:</p>
+<ol>
+<li>Compute call key.</li>
+<li><strong>Cache check</strong> — if hit, return immediately (<code>cached=True</code> on log).</li>
+<li><strong>Dedup slot</strong> — claim it, or wait on the existing owner
+   (<code>deduped=True</code> on log for waiters).</li>
+<li><strong>Retry-wrapped provider call</strong> — exponential backoff on retryable errors.</li>
+<li>On success: enrich, <strong>fill cache</strong>, notify any waiters, log INFO.</li>
+<li>On failure: notify waiters with the error, log WARNING, re-raise.</li>
+</ol>
+<h3 id="vendor-native-prompt-caching">Vendor-native prompt caching<a class="headerlink" href="#vendor-native-prompt-caching" title="Permanent link">&para;</a></h3>
+<p>Repeated system prompts and few-shot prefixes can be cached on the
+vendor's side at a steep discount (50% off on OpenAI, 90% off on
+Anthropic / DeepSeek cache reads). Loom surfaces cached-token telemetry
+and applies the vendor discount in <code>cost</code> automatically.</p>
+<p><strong>Automatic</strong> — OpenAI and DeepSeek cache eligible prompt prefixes
+without any opt-in. Loom reads the vendor's <code>cached_tokens</code> field and
+discounts cost accordingly. You'll see it on responses with no code change:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="n">result</span> <span class="o">=</span> <span class="n">loom</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span>
+</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>    <span class="n">provider</span><span class="o">=</span><span class="s2">&quot;openai&quot;</span><span class="p">,</span> <span class="n">modality</span><span class="o">=</span><span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;gpt-4o-mini&quot;</span><span class="p">,</span>
+</span><span id="__span-20-3"><a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a>    <span class="n">prompt</span><span class="o">=</span><span class="n">very_long_repeated_prompt</span><span class="p">,</span>
+</span><span id="__span-20-4"><a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a><span class="p">)</span>
+</span><span id="__span-20-5"><a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a><span class="n">result</span><span class="p">[</span><span class="s2">&quot;usage&quot;</span><span class="p">][</span><span class="s2">&quot;cached_tokens&quot;</span><span class="p">]</span>   <span class="c1"># how many input tokens hit the cache</span>
+</span><span id="__span-20-6"><a id="__codelineno-20-6" name="__codelineno-20-6" href="#__codelineno-20-6"></a><span class="n">result</span><span class="p">[</span><span class="s2">&quot;cost&quot;</span><span class="p">][</span><span class="s2">&quot;usd&quot;</span><span class="p">]</span>              <span class="c1"># already discounted for cached tokens</span>
+</span></code></pre></div>
+<p><strong>Explicit (Anthropic)</strong> — caller marks which prompt segments are
+cacheable. Two convenience knobs:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="n">result</span> <span class="o">=</span> <span class="n">loom</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span>
+</span><span id="__span-21-2"><a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>    <span class="n">provider</span><span class="o">=</span><span class="s2">&quot;anthropic&quot;</span><span class="p">,</span> <span class="n">modality</span><span class="o">=</span><span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;claude-haiku-4-5&quot;</span><span class="p">,</span>
+</span><span id="__span-21-3"><a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a>    <span class="n">prompt</span><span class="o">=</span><span class="s2">&quot;&lt;the small, varying part&gt;&quot;</span><span class="p">,</span>
+</span><span id="__span-21-4"><a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a>    <span class="n">params</span><span class="o">=</span><span class="p">{</span>
+</span><span id="__span-21-5"><a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a>        <span class="s2">&quot;system&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;the long static system prompt&gt;&quot;</span><span class="p">,</span>
+</span><span id="__span-21-6"><a id="__codelineno-21-6" name="__codelineno-21-6" href="#__codelineno-21-6"></a>        <span class="s2">&quot;cache_system&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>        <span class="c1"># wrap `system` in cache_control</span>
+</span><span id="__span-21-7"><a id="__codelineno-21-7" name="__codelineno-21-7" href="#__codelineno-21-7"></a>        <span class="c1"># &quot;cache_user&quot;: True,        # wrap the user message too</span>
+</span><span id="__span-21-8"><a id="__codelineno-21-8" name="__codelineno-21-8" href="#__codelineno-21-8"></a>    <span class="p">},</span>
+</span><span id="__span-21-9"><a id="__codelineno-21-9" name="__codelineno-21-9" href="#__codelineno-21-9"></a><span class="p">)</span>
+</span><span id="__span-21-10"><a id="__codelineno-21-10" name="__codelineno-21-10" href="#__codelineno-21-10"></a><span class="n">result</span><span class="p">[</span><span class="s2">&quot;usage&quot;</span><span class="p">][</span><span class="s2">&quot;cached_tokens&quot;</span><span class="p">]</span>            <span class="c1"># 0 on cache write, &gt;0 on subsequent calls</span>
+</span><span id="__span-21-11"><a id="__codelineno-21-11" name="__codelineno-21-11" href="#__codelineno-21-11"></a><span class="n">result</span><span class="p">[</span><span class="s2">&quot;usage&quot;</span><span class="p">][</span><span class="s2">&quot;cache_creation_tokens&quot;</span><span class="p">]</span>    <span class="c1"># &gt;0 on the first call that creates the cache</span>
+</span></code></pre></div>
+<p>For finer control (multi-block prompts, partial caching, etc.) pass
+<code>system</code> as a list of Anthropic blocks directly — Loom forwards it
+verbatim:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="n">params</span> <span class="o">=</span> <span class="p">{</span>
+</span><span id="__span-22-2"><a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a>    <span class="s2">&quot;system&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span id="__span-22-3"><a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a>        <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;...static...&quot;</span><span class="p">,</span>
+</span><span id="__span-22-4"><a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a>         <span class="s2">&quot;cache_control&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;ephemeral&quot;</span><span class="p">}},</span>
+</span><span id="__span-22-5"><a id="__codelineno-22-5" name="__codelineno-22-5" href="#__codelineno-22-5"></a>        <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;...dynamic...&quot;</span><span class="p">},</span>
+</span><span id="__span-22-6"><a id="__codelineno-22-6" name="__codelineno-22-6" href="#__codelineno-22-6"></a>    <span class="p">],</span>
+</span><span id="__span-22-7"><a id="__codelineno-22-7" name="__codelineno-22-7" href="#__codelineno-22-7"></a><span class="p">}</span>
+</span></code></pre></div>
+<p><strong>Pricing notes</strong> — <code>cost</code> reflects each token bucket at its true rate:</p>
+<table>
+<thead>
+<tr>
+<th>Provider</th>
+<th>cached_tokens rate</th>
+<th>cache_creation_tokens rate</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>OpenAI</td>
+<td>50% of input rate</td>
+<td>n/a (writes are free)</td>
+</tr>
+<tr>
+<td>Anthropic</td>
+<td>10% of input rate</td>
+<td>125% of input rate</td>
+</tr>
+<tr>
+<td>DeepSeek</td>
+<td>10% of input rate</td>
+<td>n/a (writes are free)</td>
+</tr>
+<tr>
+<td>Gemini</td>
+<td>25% of input rate</td>
+<td>n/a (via CachedContent)</td>
+</tr>
+</tbody>
+</table>
+<p>For Anthropic, the first call to a prompt charges <code>cache_creation_tokens</code>
+at 1.25× — but subsequent calls within the cache TTL pay 0.1× on the
+cached portion. Break-even is hit at ~2 reads.</p>
+<p><strong>Gemini context caching</strong> is a separate surface (see below) because
+its cache is a standalone <em>resource</em> with its own lifecycle, not a
+header on a single call.</p>
+<h3 id="gemini-context-caching">Gemini context caching<a class="headerlink" href="#gemini-context-caching" title="Permanent link">&para;</a></h3>
+<p>For long, repeated prompt prefixes (50-page policy docs, retrieval
+contexts, persona + few-shot bundles), Gemini lets you upload the
+content once as a <code>CachedContent</code> resource and reference it by ID on
+subsequent calls. The cached portion of input tokens is billed at 25%
+of the normal rate.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">loom</span><span class="w"> </span><span class="kn">import</span> <span class="n">Loom</span>
+</span><span id="__span-23-2"><a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a>
+</span><span id="__span-23-3"><a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a><span class="n">client</span> <span class="o">=</span> <span class="n">Loom</span><span class="o">.</span><span class="n">from_env</span><span class="p">()</span>
+</span><span id="__span-23-4"><a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a>
+</span><span id="__span-23-5"><a id="__codelineno-23-5" name="__codelineno-23-5" href="#__codelineno-23-5"></a><span class="n">cache</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">create_context_cache</span><span class="p">(</span>
+</span><span id="__span-23-6"><a id="__codelineno-23-6" name="__codelineno-23-6" href="#__codelineno-23-6"></a>    <span class="n">provider</span><span class="o">=</span><span class="s2">&quot;gemini&quot;</span><span class="p">,</span>
+</span><span id="__span-23-7"><a id="__codelineno-23-7" name="__codelineno-23-7" href="#__codelineno-23-7"></a>    <span class="n">model</span><span class="o">=</span><span class="s2">&quot;gemini-2.5-flash&quot;</span><span class="p">,</span>
+</span><span id="__span-23-8"><a id="__codelineno-23-8" name="__codelineno-23-8" href="#__codelineno-23-8"></a>    <span class="n">contents</span><span class="o">=</span><span class="n">long_static_document</span><span class="p">,</span>       <span class="c1"># str (wrapped as a user-role</span>
+</span><span id="__span-23-9"><a id="__codelineno-23-9" name="__codelineno-23-9" href="#__codelineno-23-9"></a>                                         <span class="c1"># text part) or list of Gemini</span>
+</span><span id="__span-23-10"><a id="__codelineno-23-10" name="__codelineno-23-10" href="#__codelineno-23-10"></a>                                         <span class="c1"># Content blocks</span>
+</span><span id="__span-23-11"><a id="__codelineno-23-11" name="__codelineno-23-11" href="#__codelineno-23-11"></a>    <span class="n">system_instruction</span><span class="o">=</span><span class="s2">&quot;You are a policy assistant.&quot;</span><span class="p">,</span>
+</span><span id="__span-23-12"><a id="__codelineno-23-12" name="__codelineno-23-12" href="#__codelineno-23-12"></a>    <span class="n">ttl_seconds</span><span class="o">=</span><span class="mi">600</span><span class="p">,</span>
+</span><span id="__span-23-13"><a id="__codelineno-23-13" name="__codelineno-23-13" href="#__codelineno-23-13"></a>    <span class="n">display_name</span><span class="o">=</span><span class="s2">&quot;policy-doc-v3&quot;</span><span class="p">,</span>
+</span><span id="__span-23-14"><a id="__codelineno-23-14" name="__codelineno-23-14" href="#__codelineno-23-14"></a><span class="p">)</span>
+</span><span id="__span-23-15"><a id="__codelineno-23-15" name="__codelineno-23-15" href="#__codelineno-23-15"></a>
+</span><span id="__span-23-16"><a id="__codelineno-23-16" name="__codelineno-23-16" href="#__codelineno-23-16"></a><span class="c1"># Reference the cache on subsequent calls:</span>
+</span><span id="__span-23-17"><a id="__codelineno-23-17" name="__codelineno-23-17" href="#__codelineno-23-17"></a><span class="n">result</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span>
+</span><span id="__span-23-18"><a id="__codelineno-23-18" name="__codelineno-23-18" href="#__codelineno-23-18"></a>    <span class="n">provider</span><span class="o">=</span><span class="s2">&quot;gemini&quot;</span><span class="p">,</span> <span class="n">modality</span><span class="o">=</span><span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;gemini-2.5-flash&quot;</span><span class="p">,</span>
+</span><span id="__span-23-19"><a id="__codelineno-23-19" name="__codelineno-23-19" href="#__codelineno-23-19"></a>    <span class="n">prompt</span><span class="o">=</span><span class="s2">&quot;Does clause 4.2 apply to subcontractors?&quot;</span><span class="p">,</span>
+</span><span id="__span-23-20"><a id="__codelineno-23-20" name="__codelineno-23-20" href="#__codelineno-23-20"></a>    <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;cached_content&quot;</span><span class="p">:</span> <span class="n">cache</span><span class="o">.</span><span class="n">id</span><span class="p">},</span>
+</span><span id="__span-23-21"><a id="__codelineno-23-21" name="__codelineno-23-21" href="#__codelineno-23-21"></a><span class="p">)</span>
+</span><span id="__span-23-22"><a id="__codelineno-23-22" name="__codelineno-23-22" href="#__codelineno-23-22"></a><span class="n">result</span><span class="p">[</span><span class="s2">&quot;usage&quot;</span><span class="p">][</span><span class="s2">&quot;cached_tokens&quot;</span><span class="p">]</span>   <span class="c1"># how many input tokens hit the cache</span>
+</span><span id="__span-23-23"><a id="__codelineno-23-23" name="__codelineno-23-23" href="#__codelineno-23-23"></a><span class="n">result</span><span class="p">[</span><span class="s2">&quot;cost&quot;</span><span class="p">][</span><span class="s2">&quot;usd&quot;</span><span class="p">]</span>              <span class="c1"># already discounted at 25%</span>
+</span><span id="__span-23-24"><a id="__codelineno-23-24" name="__codelineno-23-24" href="#__codelineno-23-24"></a>
+</span><span id="__span-23-25"><a id="__codelineno-23-25" name="__codelineno-23-25" href="#__codelineno-23-25"></a><span class="n">client</span><span class="o">.</span><span class="n">delete_context_cache</span><span class="p">(</span><span class="n">cache</span><span class="p">)</span>  <span class="c1"># or cache.delete()</span>
+</span></code></pre></div>
+<p><code>ContextCacheHandle</code>:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a><span class="n">cache</span><span class="o">.</span><span class="n">id</span>               <span class="c1"># vendor resource name (e.g. &quot;cachedContents/abc&quot;)</span>
+</span><span id="__span-24-2"><a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a><span class="n">cache</span><span class="o">.</span><span class="n">provider</span>         <span class="c1"># &quot;gemini&quot;</span>
+</span><span id="__span-24-3"><a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a><span class="n">cache</span><span class="o">.</span><span class="n">model</span>            <span class="c1"># the model this cache is keyed to</span>
+</span><span id="__span-24-4"><a id="__codelineno-24-4" name="__codelineno-24-4" href="#__codelineno-24-4"></a><span class="n">cache</span><span class="o">.</span><span class="n">display_name</span>     <span class="c1"># optional human label</span>
+</span><span id="__span-24-5"><a id="__codelineno-24-5" name="__codelineno-24-5" href="#__codelineno-24-5"></a><span class="n">cache</span><span class="o">.</span><span class="n">ttl_seconds</span>      <span class="c1"># what was requested at create time</span>
+</span><span id="__span-24-6"><a id="__codelineno-24-6" name="__codelineno-24-6" href="#__codelineno-24-6"></a><span class="n">cache</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>         <span class="c1"># best-effort delete of the vendor resource</span>
+</span><span id="__span-24-7"><a id="__codelineno-24-7" name="__codelineno-24-7" href="#__codelineno-24-7"></a><span class="n">cache</span><span class="o">.</span><span class="n">refresh</span><span class="p">()</span>        <span class="c1"># re-fetch raw vendor metadata (expire_time, etc.)</span>
+</span></code></pre></div>
+<p>The cache is <strong>model-scoped</strong> — a <code>CachedContent</code> created for
+<code>gemini-2.5-flash</code> can only be referenced by calls to that same model.
+Loom doesn't enforce this; the vendor will reject mismatches.</p>
+<p>Only Gemini has a registered context-cache adapter in this chunk.
+Other providers raise <code>ProviderError("no Loom context-cache adapter
+yet")</code>. Anthropic and OpenAI use the in-call header pattern (above)
+and don't ship a standalone cache resource API.</p>
+<h3 id="batch-api">Batch API<a class="headerlink" href="#batch-api" title="Permanent link">&para;</a></h3>
+<p>For workloads that can wait (offline jobs, overnight analytics,
+bulk migrations), vendor batch endpoints typically cost ~50% less
+than real-time calls with a ~24h SLA.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-25-1"><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">loom</span><span class="w"> </span><span class="kn">import</span> <span class="n">Loom</span><span class="p">,</span> <span class="n">BatchRequest</span>
+</span><span id="__span-25-2"><a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a>
+</span><span id="__span-25-3"><a id="__codelineno-25-3" name="__codelineno-25-3" href="#__codelineno-25-3"></a><span class="n">client</span> <span class="o">=</span> <span class="n">Loom</span><span class="o">.</span><span class="n">from_env</span><span class="p">()</span>
+</span><span id="__span-25-4"><a id="__codelineno-25-4" name="__codelineno-25-4" href="#__codelineno-25-4"></a>
+</span><span id="__span-25-5"><a id="__codelineno-25-5" name="__codelineno-25-5" href="#__codelineno-25-5"></a><span class="n">handle</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">submit_batch</span><span class="p">([</span>
+</span><span id="__span-25-6"><a id="__codelineno-25-6" name="__codelineno-25-6" href="#__codelineno-25-6"></a>    <span class="n">BatchRequest</span><span class="p">(</span><span class="n">provider</span><span class="o">=</span><span class="s2">&quot;openai&quot;</span><span class="p">,</span> <span class="n">modality</span><span class="o">=</span><span class="s2">&quot;text&quot;</span><span class="p">,</span>
+</span><span id="__span-25-7"><a id="__codelineno-25-7" name="__codelineno-25-7" href="#__codelineno-25-7"></a>                 <span class="n">model</span><span class="o">=</span><span class="s2">&quot;gpt-4o-mini&quot;</span><span class="p">,</span> <span class="n">prompt</span><span class="o">=</span><span class="s2">&quot;summarize row 1&quot;</span><span class="p">,</span>
+</span><span id="__span-25-8"><a id="__codelineno-25-8" name="__codelineno-25-8" href="#__codelineno-25-8"></a>                 <span class="n">custom_id</span><span class="o">=</span><span class="s2">&quot;row-1&quot;</span><span class="p">),</span>
+</span><span id="__span-25-9"><a id="__codelineno-25-9" name="__codelineno-25-9" href="#__codelineno-25-9"></a>    <span class="n">BatchRequest</span><span class="p">(</span><span class="n">provider</span><span class="o">=</span><span class="s2">&quot;openai&quot;</span><span class="p">,</span> <span class="n">modality</span><span class="o">=</span><span class="s2">&quot;text&quot;</span><span class="p">,</span>
+</span><span id="__span-25-10"><a id="__codelineno-25-10" name="__codelineno-25-10" href="#__codelineno-25-10"></a>                 <span class="n">model</span><span class="o">=</span><span class="s2">&quot;gpt-4o-mini&quot;</span><span class="p">,</span> <span class="n">prompt</span><span class="o">=</span><span class="s2">&quot;summarize row 2&quot;</span><span class="p">,</span>
+</span><span id="__span-25-11"><a id="__codelineno-25-11" name="__codelineno-25-11" href="#__codelineno-25-11"></a>                 <span class="n">custom_id</span><span class="o">=</span><span class="s2">&quot;row-2&quot;</span><span class="p">),</span>
+</span><span id="__span-25-12"><a id="__codelineno-25-12" name="__codelineno-25-12" href="#__codelineno-25-12"></a><span class="p">])</span>
+</span><span id="__span-25-13"><a id="__codelineno-25-13" name="__codelineno-25-13" href="#__codelineno-25-13"></a>
+</span><span id="__span-25-14"><a id="__codelineno-25-14" name="__codelineno-25-14" href="#__codelineno-25-14"></a><span class="nb">print</span><span class="p">(</span><span class="n">handle</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">handle</span><span class="o">.</span><span class="n">status</span><span class="p">())</span>
+</span><span id="__span-25-15"><a id="__codelineno-25-15" name="__codelineno-25-15" href="#__codelineno-25-15"></a>
+</span><span id="__span-25-16"><a id="__codelineno-25-16" name="__codelineno-25-16" href="#__codelineno-25-16"></a><span class="c1"># Block until done (default 24h cap, 30s poll cadence).</span>
+</span><span id="__span-25-17"><a id="__codelineno-25-17" name="__codelineno-25-17" href="#__codelineno-25-17"></a><span class="n">results</span> <span class="o">=</span> <span class="n">handle</span><span class="o">.</span><span class="n">wait</span><span class="p">(</span><span class="n">poll_interval</span><span class="o">=</span><span class="mf">60.0</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">24</span> <span class="o">*</span> <span class="mi">3600</span><span class="p">)</span>
+</span><span id="__span-25-18"><a id="__codelineno-25-18" name="__codelineno-25-18" href="#__codelineno-25-18"></a>
+</span><span id="__span-25-19"><a id="__codelineno-25-19" name="__codelineno-25-19" href="#__codelineno-25-19"></a><span class="c1"># results is a list aligned to your original BatchRequest order.</span>
+</span><span id="__span-25-20"><a id="__codelineno-25-20" name="__codelineno-25-20" href="#__codelineno-25-20"></a><span class="c1"># Each item is either a normal {&quot;kind&quot;: &quot;text&quot;, &quot;text&quot;: &quot;...&quot;} response</span>
+</span><span id="__span-25-21"><a id="__codelineno-25-21" name="__codelineno-25-21" href="#__codelineno-25-21"></a><span class="c1"># or {&quot;kind&quot;: &quot;error&quot;, &quot;error&quot;: &quot;...&quot;, &quot;custom_id&quot;: &quot;...&quot;} for that</span>
+</span><span id="__span-25-22"><a id="__codelineno-25-22" name="__codelineno-25-22" href="#__codelineno-25-22"></a><span class="c1"># single failed row.</span>
+</span></code></pre></div>
+<p>One-shot:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-26-1"><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a><span class="n">results</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">run_batch</span><span class="p">([</span><span class="n">req1</span><span class="p">,</span> <span class="n">req2</span><span class="p">,</span> <span class="n">req3</span><span class="p">])</span>
+</span></code></pre></div>
+<p><code>BatchHandle</code> API:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-27-1"><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a><span class="n">handle</span><span class="o">.</span><span class="n">id</span>            <span class="c1"># vendor-side batch id</span>
+</span><span id="__span-27-2"><a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a><span class="n">handle</span><span class="o">.</span><span class="n">provider</span>      <span class="c1"># &quot;openai&quot; etc.</span>
+</span><span id="__span-27-3"><a id="__codelineno-27-3" name="__codelineno-27-3" href="#__codelineno-27-3"></a><span class="n">handle</span><span class="o">.</span><span class="n">requests</span>      <span class="c1"># original BatchRequest list (in caller order)</span>
+</span><span id="__span-27-4"><a id="__codelineno-27-4" name="__codelineno-27-4" href="#__codelineno-27-4"></a><span class="n">handle</span><span class="o">.</span><span class="n">status</span><span class="p">()</span>      <span class="c1"># str — vendor&#39;s current status</span>
+</span><span id="__span-27-5"><a id="__codelineno-27-5" name="__codelineno-27-5" href="#__codelineno-27-5"></a><span class="n">handle</span><span class="o">.</span><span class="n">is_ready</span><span class="p">()</span>    <span class="c1"># True iff status is terminal</span>
+</span><span id="__span-27-6"><a id="__codelineno-27-6" name="__codelineno-27-6" href="#__codelineno-27-6"></a><span class="n">handle</span><span class="o">.</span><span class="n">wait</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>     <span class="c1"># blocks; returns aligned results on success</span>
+</span><span id="__span-27-7"><a id="__codelineno-27-7" name="__codelineno-27-7" href="#__codelineno-27-7"></a><span class="n">handle</span><span class="o">.</span><span class="n">results</span><span class="p">()</span>     <span class="c1"># fetch (errors if status != &quot;completed&quot;)</span>
+</span><span id="__span-27-8"><a id="__codelineno-27-8" name="__codelineno-27-8" href="#__codelineno-27-8"></a><span class="n">handle</span><span class="o">.</span><span class="n">cancel</span><span class="p">()</span>      <span class="c1"># best-effort cancel</span>
+</span></code></pre></div>
+<p>Constraints:</p>
+<ul>
+<li><strong>One provider per batch.</strong> Cross-vendor batching is N vendor-side
+  jobs and Loom doesn't hide that — file N batches.</li>
+<li><strong>One modality per batch.</strong> OpenAI's batch endpoint is per-URL
+  (<code>/v1/chat/completions</code> xor <code>/v1/images/generations</code>); mixing text +
+  image in one submission is rejected at <code>submit_batch</code> time.</li>
+<li><strong>custom_id collisions are rejected</strong> at submit time. If you don't
+  supply one, Loom generates <code>loom-&lt;uuid&gt;</code>.</li>
+</ul>
+<p><strong>Registered batch adapters: OpenAI, Anthropic.</strong> Gemini follows the
+same protocol and registers in <code>loom/batch_providers/__init__.py</code>
+when added.</p>
+<p>Anthropic-specific notes:</p>
+<ul>
+<li>Text only (Anthropic doesn't expose image generation). Image
+  modality is rejected at <code>submit_batch</code> time.</li>
+<li>Anthropic's per-request body shape (<code>model</code>, <code>max_tokens</code>,
+  <code>messages</code>, <code>system</code>) is built by reusing the live adapter's
+  <code>_build_kwargs</code>, so the same Loom-side knobs work in batch as
+  real-time — including <code>cache_system</code> / <code>cache_user</code> for prompt
+  caching across batched rows.</li>
+<li>Loom normalizes Anthropic's <code>processing_status</code> of <code>"ended"</code> to the
+  uniform <code>"completed"</code> status. Per-row <code>errored</code> / <code>canceled</code> /
+  <code>expired</code> outcomes surface as <code>{"kind": "error", "code": ...}</code>
+  entries in <code>results()</code>, matching how OpenAI partial failures are
+  reported.</li>
+</ul>
+<h3 id="smart-model-routing">Smart model routing<a class="headerlink" href="#smart-model-routing" title="Permanent link">&para;</a></h3>
+<p>Cheap-first / escalate-on-failure as a single primitive. Declare an
+ordered list of candidates (cheapest first) and an optional
+<code>validator</code>. Loom tries them in order; the first response that passes
+the validator wins.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-28-1"><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">loom</span><span class="w"> </span><span class="kn">import</span> <span class="n">Loom</span><span class="p">,</span> <span class="n">Router</span><span class="p">,</span> <span class="n">Candidate</span>
+</span><span id="__span-28-2"><a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a>
+</span><span id="__span-28-3"><a id="__codelineno-28-3" name="__codelineno-28-3" href="#__codelineno-28-3"></a><span class="n">router</span> <span class="o">=</span> <span class="n">Router</span><span class="p">(</span>
+</span><span id="__span-28-4"><a id="__codelineno-28-4" name="__codelineno-28-4" href="#__codelineno-28-4"></a>    <span class="n">candidates</span><span class="o">=</span><span class="p">[</span>
+</span><span id="__span-28-5"><a id="__codelineno-28-5" name="__codelineno-28-5" href="#__codelineno-28-5"></a>        <span class="p">(</span><span class="s2">&quot;openai&quot;</span><span class="p">,</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;gpt-4o-mini&quot;</span><span class="p">),</span>                       <span class="c1"># tuple shorthand</span>
+</span><span id="__span-28-6"><a id="__codelineno-28-6" name="__codelineno-28-6" href="#__codelineno-28-6"></a>        <span class="n">Candidate</span><span class="p">(</span><span class="s2">&quot;anthropic&quot;</span><span class="p">,</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;claude-haiku-4-5&quot;</span><span class="p">),</span>
+</span><span id="__span-28-7"><a id="__codelineno-28-7" name="__codelineno-28-7" href="#__codelineno-28-7"></a>        <span class="p">(</span><span class="s2">&quot;openai&quot;</span><span class="p">,</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;gpt-4o&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;temperature&quot;</span><span class="p">:</span> <span class="mf">0.2</span><span class="p">}),</span>      <span class="c1"># tuple + params</span>
+</span><span id="__span-28-8"><a id="__codelineno-28-8" name="__codelineno-28-8" href="#__codelineno-28-8"></a>    <span class="p">],</span>
+</span><span id="__span-28-9"><a id="__codelineno-28-9" name="__codelineno-28-9" href="#__codelineno-28-9"></a>    <span class="n">validator</span><span class="o">=</span><span class="k">lambda</span> <span class="n">result</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s2">&quot;text&quot;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">40</span><span class="p">,</span>
+</span><span id="__span-28-10"><a id="__codelineno-28-10" name="__codelineno-28-10" href="#__codelineno-28-10"></a><span class="p">)</span>
+</span><span id="__span-28-11"><a id="__codelineno-28-11" name="__codelineno-28-11" href="#__codelineno-28-11"></a>
+</span><span id="__span-28-12"><a id="__codelineno-28-12" name="__codelineno-28-12" href="#__codelineno-28-12"></a><span class="n">client</span> <span class="o">=</span> <span class="n">Loom</span><span class="o">.</span><span class="n">from_env</span><span class="p">()</span>
+</span><span id="__span-28-13"><a id="__codelineno-28-13" name="__codelineno-28-13" href="#__codelineno-28-13"></a><span class="n">result</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="n">router</span><span class="p">,</span> <span class="n">prompt</span><span class="o">=</span><span class="s2">&quot;Explain quantum entanglement.&quot;</span><span class="p">)</span>
+</span><span id="__span-28-14"><a id="__codelineno-28-14" name="__codelineno-28-14" href="#__codelineno-28-14"></a>
+</span><span id="__span-28-15"><a id="__codelineno-28-15" name="__codelineno-28-15" href="#__codelineno-28-15"></a><span class="n">result</span><span class="p">[</span><span class="s2">&quot;text&quot;</span><span class="p">]</span>                  <span class="c1"># whichever candidate won</span>
+</span><span id="__span-28-16"><a id="__codelineno-28-16" name="__codelineno-28-16" href="#__codelineno-28-16"></a><span class="n">result</span><span class="p">[</span><span class="s2">&quot;_router&quot;</span><span class="p">][</span><span class="s2">&quot;used&quot;</span><span class="p">]</span>       <span class="c1"># &quot;openai:text:gpt-4o-mini&quot;</span>
+</span><span id="__span-28-17"><a id="__codelineno-28-17" name="__codelineno-28-17" href="#__codelineno-28-17"></a><span class="n">result</span><span class="p">[</span><span class="s2">&quot;_router&quot;</span><span class="p">][</span><span class="s2">&quot;tried&quot;</span><span class="p">]</span>      <span class="c1"># list of every candidate attempted</span>
+</span><span id="__span-28-18"><a id="__codelineno-28-18" name="__codelineno-28-18" href="#__codelineno-28-18"></a><span class="n">result</span><span class="p">[</span><span class="s2">&quot;_router&quot;</span><span class="p">][</span><span class="s2">&quot;passed&quot;</span><span class="p">]</span>     <span class="c1"># True iff the validator accepted</span>
+</span></code></pre></div>
+<p>Per-candidate <code>params</code> are merged on top of the <code>params</code> passed to
+<code>route()</code> — candidate params win on conflict. That's how you bake
+quality knobs (temperature bumps, longer max_tokens) into the
+escalation tier without rewriting them on each call.</p>
+<p>Failure semantics:</p>
+<ul>
+<li>A candidate that raises <code>LoomError</code> (any subclass — <code>AuthError</code>,
+  <code>RateLimitError</code>, <code>ProviderError</code>, <code>ModelNotFoundError</code>) is recorded
+  and skipped. Loom tries the next candidate.</li>
+<li>Non-Loom exceptions propagate immediately — those are programmer
+  errors, not vendor flakiness.</li>
+<li>If every candidate raises, the <strong>last</strong> exception is re-raised.</li>
+<li>If candidates succeed but the validator rejects all of them, the
+  <strong>last</strong> successful response is returned with
+  <code>result["_router"]["passed"] = False</code>. The caller still has an
+  answer; they decide whether to use it.</li>
+</ul>
+<p>Async surface is identical:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-29-1"><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a><span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">aclient</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="n">router</span><span class="p">,</span> <span class="n">prompt</span><span class="o">=</span><span class="s2">&quot;…&quot;</span><span class="p">)</span>
+</span></code></pre></div>
+<p>Routing composes with the rest of the optimization layer — each
+candidate call goes through the normal <code>generate()</code> path (cache,
+dedup, retry). Cache hits on the cheap candidate short-circuit the
+chain at zero cost.</p>
+<h3 id="cross-vendor-failover">Cross-vendor failover<a class="headerlink" href="#cross-vendor-failover" title="Permanent link">&para;</a></h3>
+<p>The same Router primitive doubles as failover: declare a starting model
+and let Loom fall through cross-vendor equivalents if the primary
+errors. Loom ships a small opinionated <code>EquivalenceMap</code> keyed by tier
+(<code>text/nano</code>, <code>text/cheap</code>, <code>text/standard</code>, <code>text/frontier</code>); each
+tier groups the models from different vendors that can stand in for
+each other.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-30-1"><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">loom</span><span class="w"> </span><span class="kn">import</span> <span class="n">Loom</span><span class="p">,</span> <span class="n">Router</span>
+</span><span id="__span-30-2"><a id="__codelineno-30-2" name="__codelineno-30-2" href="#__codelineno-30-2"></a>
+</span><span id="__span-30-3"><a id="__codelineno-30-3" name="__codelineno-30-3" href="#__codelineno-30-3"></a><span class="c1"># gpt-4o-mini, falling back through Anthropic / Gemini / DeepSeek if</span>
+</span><span id="__span-30-4"><a id="__codelineno-30-4" name="__codelineno-30-4" href="#__codelineno-30-4"></a><span class="c1"># OpenAI is down or rate-limiting.</span>
+</span><span id="__span-30-5"><a id="__codelineno-30-5" name="__codelineno-30-5" href="#__codelineno-30-5"></a><span class="n">router</span> <span class="o">=</span> <span class="n">Router</span><span class="o">.</span><span class="n">failover</span><span class="p">(</span>
+</span><span id="__span-30-6"><a id="__codelineno-30-6" name="__codelineno-30-6" href="#__codelineno-30-6"></a>    <span class="n">provider</span><span class="o">=</span><span class="s2">&quot;openai&quot;</span><span class="p">,</span> <span class="n">modality</span><span class="o">=</span><span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;gpt-4o-mini&quot;</span><span class="p">,</span>
+</span><span id="__span-30-7"><a id="__codelineno-30-7" name="__codelineno-30-7" href="#__codelineno-30-7"></a><span class="p">)</span>
+</span><span id="__span-30-8"><a id="__codelineno-30-8" name="__codelineno-30-8" href="#__codelineno-30-8"></a>
+</span><span id="__span-30-9"><a id="__codelineno-30-9" name="__codelineno-30-9" href="#__codelineno-30-9"></a><span class="n">client</span> <span class="o">=</span> <span class="n">Loom</span><span class="o">.</span><span class="n">from_env</span><span class="p">()</span>
+</span><span id="__span-30-10"><a id="__codelineno-30-10" name="__codelineno-30-10" href="#__codelineno-30-10"></a><span class="n">result</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="n">router</span><span class="p">,</span> <span class="n">prompt</span><span class="o">=</span><span class="n">user_question</span><span class="p">)</span>
+</span><span id="__span-30-11"><a id="__codelineno-30-11" name="__codelineno-30-11" href="#__codelineno-30-11"></a><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s2">&quot;_router&quot;</span><span class="p">][</span><span class="s2">&quot;used&quot;</span><span class="p">])</span>    <span class="c1"># which vendor actually answered</span>
+</span></code></pre></div>
+<p>Custom equivalence map (your shop's own opinion about who's equivalent
+to whom):</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-31-1"><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">loom</span><span class="w"> </span><span class="kn">import</span> <span class="n">EquivalenceMap</span><span class="p">,</span> <span class="n">Router</span>
+</span><span id="__span-31-2"><a id="__codelineno-31-2" name="__codelineno-31-2" href="#__codelineno-31-2"></a>
+</span><span id="__span-31-3"><a id="__codelineno-31-3" name="__codelineno-31-3" href="#__codelineno-31-3"></a><span class="n">my_map</span> <span class="o">=</span> <span class="n">EquivalenceMap</span><span class="p">({</span>
+</span><span id="__span-31-4"><a id="__codelineno-31-4" name="__codelineno-31-4" href="#__codelineno-31-4"></a>    <span class="s2">&quot;text/cheap&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span id="__span-31-5"><a id="__codelineno-31-5" name="__codelineno-31-5" href="#__codelineno-31-5"></a>        <span class="p">(</span><span class="s2">&quot;openai&quot;</span><span class="p">,</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;gpt-4o-mini&quot;</span><span class="p">),</span>
+</span><span id="__span-31-6"><a id="__codelineno-31-6" name="__codelineno-31-6" href="#__codelineno-31-6"></a>        <span class="p">(</span><span class="s2">&quot;deepseek&quot;</span><span class="p">,</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;deepseek-v3&quot;</span><span class="p">),</span>
+</span><span id="__span-31-7"><a id="__codelineno-31-7" name="__codelineno-31-7" href="#__codelineno-31-7"></a>    <span class="p">],</span>
+</span><span id="__span-31-8"><a id="__codelineno-31-8" name="__codelineno-31-8" href="#__codelineno-31-8"></a><span class="p">})</span>
+</span><span id="__span-31-9"><a id="__codelineno-31-9" name="__codelineno-31-9" href="#__codelineno-31-9"></a><span class="n">router</span> <span class="o">=</span> <span class="n">Router</span><span class="o">.</span><span class="n">failover</span><span class="p">(</span>
+</span><span id="__span-31-10"><a id="__codelineno-31-10" name="__codelineno-31-10" href="#__codelineno-31-10"></a>    <span class="n">provider</span><span class="o">=</span><span class="s2">&quot;openai&quot;</span><span class="p">,</span> <span class="n">modality</span><span class="o">=</span><span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;gpt-4o-mini&quot;</span><span class="p">,</span>
+</span><span id="__span-31-11"><a id="__codelineno-31-11" name="__codelineno-31-11" href="#__codelineno-31-11"></a>    <span class="n">equivalence</span><span class="o">=</span><span class="n">my_map</span><span class="p">,</span>
+</span><span id="__span-31-12"><a id="__codelineno-31-12" name="__codelineno-31-12" href="#__codelineno-31-12"></a><span class="p">)</span>
+</span></code></pre></div>
+<p><code>Router.failover(...)</code> also accepts:</p>
+<ul>
+<li><code>validator=fn</code> — same hook as <code>Router(...)</code>. Use it to layer a quality
+  check on top of failover (vendor fell over <em>or</em> the answer was bad).</li>
+<li><code>extra_candidates=[...]</code> — appended after the cross-vendor equivalents.
+  Useful for "and if everything else fails, escalate to the expensive
+  model" trailing fallbacks.</li>
+</ul>
+<p>If the starting model isn't in any tier of the equivalence map,
+<code>Router.failover(...)</code> returns a one-candidate Router — equivalent to a
+plain <code>client.generate(...)</code> call but still composes with retry, cache,
+and dedup through <code>client.route(...)</code>.</p>
+<p><code>Router.failover</code> is sugar over <code>Router</code>. Under the hood the failover
+router is a regular Router with the candidates pre-populated from the
+equivalence map; everything documented under "Smart model routing"
+above (result trace, validator rules, async surface) applies verbatim.</p>
+<h3 id="whats-still-pending-in-phase-3">What's still pending in Phase 3<a class="headerlink" href="#whats-still-pending-in-phase-3" title="Permanent link">&para;</a></h3>
+<p>The roadmap items not yet implemented in this branch:</p>
+<ul>
+<li><strong>Batch API: Gemini</strong> (Vertex AI batch prediction; uses GCS for I/O,
+  so it's bigger work than the OpenAI/Anthropic pattern)</li>
+<li><strong>Centralized key vault integration</strong> (AWS / GCP / Vault backends for <code>api_keys</code>)</li>
+<li><strong>Public docs site</strong> and <strong>semver stability commitment</strong> (release-time concerns)</li>
+</ul>
+<p>These all land independently on top of the primitives above.</p>
+<hr />
+<h2 id="provider-context-advanced">Provider context (advanced)<a class="headerlink" href="#provider-context-advanced" title="Permanent link">&para;</a></h2>
+<p><code>loom._context</code> exposes the per-call <code>LoomContext</code> via a <code>ContextVar</code>.
+Provider modules read it through <code>loom.providers._common.require_env</code>
+so they can be unaware of <code>api_keys</code> plumbing. End users normally don't
+need to touch this.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.indexes", "navigation.top", "search.suggest", "search.highlight", "content.code.copy", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

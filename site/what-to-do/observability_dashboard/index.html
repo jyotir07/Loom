@@ -1,0 +1,1423 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="One contract for every AI vendor.">
+      
+      
+      
+        <link rel="canonical" href="https://jyotir07.github.io/Loom/what-to-do/observability_dashboard/">
+      
+      
+        <link rel="prev" href="../">
+      
+      
+        <link rel="next" href="../../roadmap/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Observability dashboard - Loom</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#observability-dashboard" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Loom" class="md-header__button md-logo" aria-label="Loom" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Loom
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Observability dashboard
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/jyotir07/Loom" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    jyotir07/Loom
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../migration_guide/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Getting started
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../api_reference/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  API reference
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../stability/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Stability
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
+          
+  
+  
+    
+  
+  What to do with Loom
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../roadmap/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Roadmap
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../diag/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Architecture
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Loom" class="md-nav__button md-logo" aria-label="Loom" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Loom
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/jyotir07/Loom" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    jyotir07/Loom
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../migration_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api_reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../stability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Stability
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    What to do with Loom
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    What to do with Loom
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Observability dashboard
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Observability dashboard
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#the-idea" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The idea
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-you-already-have" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What you already have
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-one-gap-nothing-persists-the-events" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The one gap: nothing persists the events
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#architecture-four-layers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Architecture — four layers
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Architecture — four layers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-a-sink-logging-handler" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. A sink (logging handler)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-aggregation-queries" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Aggregation queries
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-json-api-endpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. JSON API endpoints
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-frontend" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Frontend
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#two-honest-caveats" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Two honest caveats
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Two honest caveats">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cost-saved-needs-a-baseline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        "Cost saved" needs a baseline
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#retries-failover-arent-in-log_call-yet" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Retries / failover aren't in log_call yet
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#suggested-build-order" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Suggested build order
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#design-principles-to-preserve" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Design principles to preserve
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../roadmap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../diag/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#the-idea" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The idea
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-you-already-have" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What you already have
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-one-gap-nothing-persists-the-events" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The one gap: nothing persists the events
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#architecture-four-layers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Architecture — four layers
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Architecture — four layers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-a-sink-logging-handler" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. A sink (logging handler)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-aggregation-queries" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Aggregation queries
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-json-api-endpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. JSON API endpoints
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-frontend" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Frontend
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#two-honest-caveats" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Two honest caveats
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Two honest caveats">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cost-saved-needs-a-baseline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        "Cost saved" needs a baseline
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#retries-failover-arent-in-log_call-yet" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Retries / failover aren't in log_call yet
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#suggested-build-order" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Suggested build order
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#design-principles-to-preserve" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Design principles to preserve
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="observability-dashboard">Observability Dashboard<a class="headerlink" href="#observability-dashboard" title="Permanent link">&para;</a></h1>
+<p><em>How to build a real-time observability dashboard on top of Loom's call data.</em></p>
+<hr />
+<h2 id="the-idea">The idea<a class="headerlink" href="#the-idea" title="Permanent link">&para;</a></h2>
+<p>Loom already emits one structured record per <code>generate()</code> call. That stream
+contains everything a provider-health / cost / throughput dashboard needs —
+provider, model, latency, token counts, cost, and the cached/deduped flags.
+The dashboard does not require any new instrumentation in your call sites; it
+only requires <strong>capturing</strong> those records into a store and <strong>aggregating</strong> them.</p>
+<p>This is the Phase 3 <em>"Observability dashboard"</em> deliverable from the
+<a href="../../roadmap/">roadmap</a>. This page documents the design.</p>
+<p>A target layout looks like this:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>┌───────────────────────────────────────────────────────────────────┐
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>│  REQUESTS / MIN     P95 LATENCY     CACHE HIT RATE     COST SAVED   │
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>│     12,847            312ms             61.4%            $1,284      │
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>├───────────────────────────────────────┬───────────────────────────┤
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>│  REQUESTS OVER TIME (throughput)       │  PROVIDER HEALTH           │
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>│  ╱╲    ╱╲   ╱╲╱╲                       │  ● OpenAI       370ms  ✓   │
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>│ ╱  ╲__╱  ╲_╱    ╲___                   │  ● Anthropic    280ms  ✓   │
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>│                                        │  ● xAI Grok     480ms  ⚠   │
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>│  TOKEN USAGE · BY PROVIDER             │  ...                       │
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>│  OpenAI    ████████████ 82%            ├───────────────────────────┤
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>│  Anthropic ████████ 64%                │  RECENT RETRIES · FAILOVER │
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>│  Gemini    █████ 47%                   │  retry openai · 429   2s   │
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>│  ...                                   │  failover openai→anthropic │
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>├───────────────────────────────────────┴───────────────────────────┤
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>│  LIVE REQUEST LOG · STRUCTURED INFO                    tailing 1.3s │
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>│  15:50:52  ok  openai  gpt-4o-mini   483.0ms  cached   $0.0001686   │
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>└───────────────────────────────────────────────────────────────────┘
+</span></code></pre></div>
+<hr />
+<h2 id="what-you-already-have">What you already have<a class="headerlink" href="#what-you-already-have" title="Permanent link">&para;</a></h2>
+<p><code>loom/_logging.py</code> → <code>log_call()</code> emits one record per call at <code>INFO</code> on the
+<code>loom</code> logger, with the full structured payload attached as <code>record.loom</code>
+(an <code>extra</code> dict). Every dashboard panel maps onto a field that is <strong>already
+being emitted</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>Dashboard panel</th>
+<th>Loom field(s) (already emitted)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Requests / min, throughput chart</td>
+<td>count of records over a time window</td>
+</tr>
+<tr>
+<td>P95 latency</td>
+<td><code>latency_ms</code></td>
+</tr>
+<tr>
+<td>Cache hit rate</td>
+<td><code>cached</code> (bool)</td>
+</tr>
+<tr>
+<td>Cost saved / Token usage by provider</td>
+<td><code>cost_usd</code>, <code>input_tokens</code>, <code>output_tokens</code>, <code>provider</code></td>
+</tr>
+<tr>
+<td>Provider health (latency + ✓/⚠)</td>
+<td><code>latency_ms</code> + <code>ok</code>, grouped by <code>provider</code></td>
+</tr>
+<tr>
+<td>Recent retries / failover</td>
+<td><code>loom.retry</code> logger + <code>_router</code> trace in results</td>
+</tr>
+<tr>
+<td>Live request log</td>
+<td>the raw <code>log_call</code> stream</td>
+</tr>
+</tbody>
+</table>
+<p>The provider list (OpenAI, Anthropic, Gemini, xAI Grok, Mistral, DeepSeek,
+MiniMax, Z.AI, …) is simply your registered providers. The existing Flask app
+(<code>app.py</code>, port <code>3001</code>) is the natural place to host the dashboard routes.</p>
+<p>The full per-call payload available on <code>record.loom</code>:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="p">{</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>    <span class="s2">&quot;provider&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="s2">&quot;modality&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="s2">&quot;model&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="s2">&quot;upstream_model&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    <span class="s2">&quot;latency_ms&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    <span class="s2">&quot;input_tokens&quot;</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;output_tokens&quot;</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;total_tokens&quot;</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>    <span class="s2">&quot;cost_usd&quot;</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;cost_local&quot;</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;cost_currency&quot;</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>    <span class="s2">&quot;ok&quot;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="s2">&quot;cached&quot;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="s2">&quot;deduped&quot;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>    <span class="s2">&quot;error_type&quot;</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>   <span class="c1"># present only on failure</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="p">}</span>
+</span></code></pre></div>
+<hr />
+<h2 id="the-one-gap-nothing-persists-the-events">The one gap: nothing persists the events<a class="headerlink" href="#the-one-gap-nothing-persists-the-events" title="Permanent link">&para;</a></h2>
+<p>By design, Loom follows a <em>"no surprises"</em> rule — the library adds <strong>no log
+handlers</strong> by default (see the docstring in <code>loom/_logging.py</code>). <code>log_call</code>
+calls <code>logger.info(...)</code> and that's it; the record is discarded unless a
+consumer attaches a handler.</p>
+<p>To power a dashboard you must <strong>capture</strong> those records into a store and
+<strong>aggregate</strong> them. Keep this optional and consumer-owned so the library never
+forces a sink on anyone.</p>
+<hr />
+<h2 id="architecture-four-layers">Architecture — four layers<a class="headerlink" href="#architecture-four-layers" title="Permanent link">&para;</a></h2>
+<h3 id="1-a-sink-logging-handler">1. A sink (logging handler)<a class="headerlink" href="#1-a-sink-logging-handler" title="Permanent link">&para;</a></h3>
+<p>Attach a <code>logging.Handler</code> to the <code>loom</code> logger that reads <code>record.loom</code> and
+writes a row. SQLite is enough for a demo or a single-node deployment;
+Postgres (you already have <code>seed_db.py</code> wiring) or a time-series store for real
+load.</p>
+<p>Recommended home: a new optional module <code>loom/observability/</code> so it never
+pulls extra deps into the core import path.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># loom/observability/sink.py</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span><span class="o">,</span><span class="w"> </span><span class="nn">sqlite3</span><span class="o">,</span><span class="w"> </span><span class="nn">time</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="k">class</span><span class="w"> </span><span class="nc">SQLiteSink</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">Handler</span><span class="p">):</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Persist every Loom call into SQLite for the dashboard.</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="sd">    Wire it once at app startup:</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="sd">        import logging</span>
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="sd">        from loom.observability.sink import SQLiteSink</span>
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="sd">        logging.getLogger(&quot;loom&quot;).addHandler(SQLiteSink())</span>
+</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>
+</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="sd">    After that, every generate() call anywhere in the process is recorded —</span>
+</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="sd">    no per-call-site changes.</span>
+</span><span id="__span-2-15"><a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="__span-2-16"><a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a>
+</span><span id="__span-2-17"><a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;loom_events.db&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="__span-2-18"><a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+</span><span id="__span-2-19"><a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">db</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">check_same_thread</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</span><span id="__span-2-20"><a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+</span><span id="__span-2-21"><a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a><span class="w">            </span><span class="sd">&quot;&quot;&quot;CREATE TABLE IF NOT EXISTS events(</span>
+</span><span id="__span-2-22"><a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a><span class="sd">                ts REAL, provider TEXT, model TEXT, latency_ms REAL,</span>
+</span><span id="__span-2-23"><a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a><span class="sd">                input_tokens INT, output_tokens INT, cost_usd REAL,</span>
+</span><span id="__span-2-24"><a id="__codelineno-2-24" name="__codelineno-2-24" href="#__codelineno-2-24"></a><span class="sd">                ok INT, cached INT, deduped INT, error_type TEXT)&quot;&quot;&quot;</span>
+</span><span id="__span-2-25"><a id="__codelineno-2-25" name="__codelineno-2-25" href="#__codelineno-2-25"></a>        <span class="p">)</span>
+</span><span id="__span-2-26"><a id="__codelineno-2-26" name="__codelineno-2-26" href="#__codelineno-2-26"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;CREATE INDEX IF NOT EXISTS idx_events_ts ON events(ts)&quot;</span><span class="p">)</span>
+</span><span id="__span-2-27"><a id="__codelineno-2-27" name="__codelineno-2-27" href="#__codelineno-2-27"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+</span><span id="__span-2-28"><a id="__codelineno-2-28" name="__codelineno-2-28" href="#__codelineno-2-28"></a>
+</span><span id="__span-2-29"><a id="__codelineno-2-29" name="__codelineno-2-29" href="#__codelineno-2-29"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">emit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">record</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">LogRecord</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="__span-2-30"><a id="__codelineno-2-30" name="__codelineno-2-30" href="#__codelineno-2-30"></a>        <span class="n">d</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">record</span><span class="p">,</span> <span class="s2">&quot;loom&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+</span><span id="__span-2-31"><a id="__codelineno-2-31" name="__codelineno-2-31" href="#__codelineno-2-31"></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">d</span><span class="p">:</span>
+</span><span id="__span-2-32"><a id="__codelineno-2-32" name="__codelineno-2-32" href="#__codelineno-2-32"></a>            <span class="k">return</span>
+</span><span id="__span-2-33"><a id="__codelineno-2-33" name="__codelineno-2-33" href="#__codelineno-2-33"></a>        <span class="k">try</span><span class="p">:</span>
+</span><span id="__span-2-34"><a id="__codelineno-2-34" name="__codelineno-2-34" href="#__codelineno-2-34"></a>            <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+</span><span id="__span-2-35"><a id="__codelineno-2-35" name="__codelineno-2-35" href="#__codelineno-2-35"></a>                <span class="s2">&quot;INSERT INTO events VALUES (?,?,?,?,?,?,?,?,?,?,?)&quot;</span><span class="p">,</span>
+</span><span id="__span-2-36"><a id="__codelineno-2-36" name="__codelineno-2-36" href="#__codelineno-2-36"></a>                <span class="p">(</span>
+</span><span id="__span-2-37"><a id="__codelineno-2-37" name="__codelineno-2-37" href="#__codelineno-2-37"></a>                    <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">(),</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;provider&quot;</span><span class="p">],</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;model&quot;</span><span class="p">],</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;latency_ms&quot;</span><span class="p">],</span>
+</span><span id="__span-2-38"><a id="__codelineno-2-38" name="__codelineno-2-38" href="#__codelineno-2-38"></a>                    <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;input_tokens&quot;</span><span class="p">),</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;output_tokens&quot;</span><span class="p">),</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;cost_usd&quot;</span><span class="p">),</span>
+</span><span id="__span-2-39"><a id="__codelineno-2-39" name="__codelineno-2-39" href="#__codelineno-2-39"></a>                    <span class="nb">int</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;ok&quot;</span><span class="p">]),</span> <span class="nb">int</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;cached&quot;</span><span class="p">]),</span> <span class="nb">int</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;deduped&quot;</span><span class="p">]),</span>
+</span><span id="__span-2-40"><a id="__codelineno-2-40" name="__codelineno-2-40" href="#__codelineno-2-40"></a>                    <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;error_type&quot;</span><span class="p">),</span>
+</span><span id="__span-2-41"><a id="__codelineno-2-41" name="__codelineno-2-41" href="#__codelineno-2-41"></a>                <span class="p">),</span>
+</span><span id="__span-2-42"><a id="__codelineno-2-42" name="__codelineno-2-42" href="#__codelineno-2-42"></a>            <span class="p">)</span>
+</span><span id="__span-2-43"><a id="__codelineno-2-43" name="__codelineno-2-43" href="#__codelineno-2-43"></a>            <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+</span><span id="__span-2-44"><a id="__codelineno-2-44" name="__codelineno-2-44" href="#__codelineno-2-44"></a>        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>          <span class="c1"># a logging handler must never raise</span>
+</span><span id="__span-2-45"><a id="__codelineno-2-45" name="__codelineno-2-45" href="#__codelineno-2-45"></a>            <span class="bp">self</span><span class="o">.</span><span class="n">handleError</span><span class="p">(</span><span class="n">record</span><span class="p">)</span>
+</span></code></pre></div>
+<h3 id="2-aggregation-queries">2. Aggregation queries<a class="headerlink" href="#2-aggregation-queries" title="Permanent link">&para;</a></h3>
+<p>One function per panel. Examples (SQLite, last-N-seconds windows):</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># loom/observability/metrics.py — sketch</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="k">def</span><span class="w"> </span><span class="nf">requests_per_min</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="mi">60</span><span class="p">):</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>    <span class="p">(</span><span class="n">n</span><span class="p">,)</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>        <span class="s2">&quot;SELECT COUNT(*) FROM events WHERE ts &gt; ?&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">window</span><span class="p">,)</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>    <span class="p">)</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>    <span class="k">return</span> <span class="n">n</span>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="k">def</span><span class="w"> </span><span class="nf">cache_hit_rate</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="mi">86400</span><span class="p">):</span>
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>    <span class="n">row</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>        <span class="s2">&quot;SELECT AVG(cached) FROM events WHERE ts &gt; ?&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">window</span><span class="p">,)</span>
+</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>    <span class="p">)</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>    <span class="k">return</span> <span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">or</span> <span class="mi">0</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span>
+</span><span id="__span-3-13"><a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>
+</span><span id="__span-3-14"><a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="k">def</span><span class="w"> </span><span class="nf">p95_latency</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="mi">86400</span><span class="p">):</span>
+</span><span id="__span-3-15"><a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a>    <span class="n">rows</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+</span><span id="__span-3-16"><a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a>        <span class="s2">&quot;SELECT latency_ms FROM events WHERE ts &gt; ? ORDER BY latency_ms&quot;</span><span class="p">,</span>
+</span><span id="__span-3-17"><a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a>        <span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">window</span><span class="p">,))</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()]</span>
+</span><span id="__span-3-18"><a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">rows</span><span class="p">:</span>
+</span><span id="__span-3-19"><a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a>        <span class="k">return</span> <span class="mi">0</span>
+</span><span id="__span-3-20"><a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a>    <span class="k">return</span> <span class="n">rows</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.95</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+</span><span id="__span-3-21"><a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a>
+</span><span id="__span-3-22"><a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a><span class="k">def</span><span class="w"> </span><span class="nf">provider_health</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="mi">86400</span><span class="p">):</span>
+</span><span id="__span-3-23"><a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a>    <span class="k">return</span> <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+</span><span id="__span-3-24"><a id="__codelineno-3-24" name="__codelineno-3-24" href="#__codelineno-3-24"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;SELECT provider, AVG(latency_ms) AS lat, AVG(ok) AS ok_rate</span>
+</span><span id="__span-3-25"><a id="__codelineno-3-25" name="__codelineno-3-25" href="#__codelineno-3-25"></a><span class="sd">           FROM events WHERE ts &gt; ? GROUP BY provider ORDER BY lat&quot;&quot;&quot;</span><span class="p">,</span>
+</span><span id="__span-3-26"><a id="__codelineno-3-26" name="__codelineno-3-26" href="#__codelineno-3-26"></a>        <span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">window</span><span class="p">,))</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+</span></code></pre></div>
+<ul>
+<li><strong>Requests / min</strong> → <code>COUNT(*) WHERE ts &gt; now-60</code></li>
+<li><strong>Cache hit rate</strong> → <code>AVG(cached)</code></li>
+<li><strong>P95 latency</strong> → 95th percentile of <code>latency_ms</code></li>
+<li><strong>Provider health</strong> → <code>GROUP BY provider</code> on <code>AVG(latency_ms)</code> + <code>AVG(ok)</code>
+  (map <code>ok_rate</code> to ✓ / ⚠ thresholds, e.g. <code>⚠</code> when avg latency is high or
+  <code>ok_rate &lt; 1.0</code>)</li>
+<li><strong>Token usage by provider</strong> → <code>SUM(input_tokens + output_tokens) GROUP BY provider</code>,
+  rendered as a share of the busiest provider</li>
+<li><strong>Throughput chart</strong> → bucket counts by minute (<code>GROUP BY CAST(ts/60 AS INT)</code>)</li>
+</ul>
+<h3 id="3-json-api-endpoints">3. JSON API endpoints<a class="headerlink" href="#3-json-api-endpoints" title="Permanent link">&para;</a></h3>
+<p>Add read-only routes to <code>app.py</code>, behind the existing login wall:</p>
+<table>
+<thead>
+<tr>
+<th>Route</th>
+<th>Returns</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>GET /api/metrics/summary</code></td>
+<td>the four top cards (req/min, p95, cache %, cost)</td>
+</tr>
+<tr>
+<td><code>GET /api/metrics/providers</code></td>
+<td>per-provider latency + health status</td>
+</tr>
+<tr>
+<td><code>GET /api/metrics/timeseries</code></td>
+<td>per-minute request counts for the throughput chart</td>
+</tr>
+<tr>
+<td><code>GET /api/metrics/tokens</code></td>
+<td>token usage by provider</td>
+</tr>
+<tr>
+<td><code>GET /api/logs/tail?n=50</code></td>
+<td>most recent N raw events for the live log</td>
+</tr>
+</tbody>
+</table>
+<p>Each one just calls an aggregation function and <code>jsonify</code>s the result.</p>
+<h3 id="4-frontend">4. Frontend<a class="headerlink" href="#4-frontend" title="Permanent link">&para;</a></h3>
+<p>A new Jinja template (e.g. <code>templates/dashboard.html</code>) plus CSS/JS that polls
+the endpoints (summary/providers/tokens every ~2 s; log tail every ~1.3 s) and
+renders:</p>
+<ul>
+<li>four metric cards</li>
+<li>a sparkline / area chart for throughput (Chart.js, or a hand-rolled SVG
+  polyline to stay dependency-free)</li>
+<li>the provider-health list with status dots</li>
+<li>horizontal bars for token usage</li>
+<li>a tailing, monospaced request log</li>
+</ul>
+<p>The dark / monospace aesthetic of the mockup is pure CSS — no special tooling.</p>
+<hr />
+<h2 id="two-honest-caveats">Two honest caveats<a class="headerlink" href="#two-honest-caveats" title="Permanent link">&para;</a></h2>
+<h3 id="cost-saved-needs-a-baseline">"Cost saved" needs a baseline<a class="headerlink" href="#cost-saved-needs-a-baseline" title="Permanent link">&para;</a></h3>
+<p>Loom logs <em>actual</em> cost (<code>cost_usd</code>). <strong>Saved</strong> means
+<code>cost_without_optimization − cost_with_optimization</code>. To populate that card
+truthfully you must also record the <strong>avoided</strong> cost — for a <code>cached</code> or
+<code>deduped</code> hit, the price that <em>would</em> have been paid upstream; for a router
+downgrade, the delta between the expensive candidate and the one that actually
+answered. That is a small addition to <code>log_call</code> (e.g. a <code>cost_saved_usd</code>
+field) plus a column in the sink. Until then, treat "cost saved" as an estimate
+derived from <code>cached</code>/<code>deduped</code> counts × average call cost, and label it as
+such.</p>
+<h3 id="retries-failover-arent-in-log_call-yet">Retries / failover aren't in <code>log_call</code> yet<a class="headerlink" href="#retries-failover-arent-in-log_call-yet" title="Permanent link">&para;</a></h3>
+<p>The "Recent retries · failover" panel needs events that today live in the
+<code>loom.retry</code> logger (<code>loom/_retry.py</code>) and the <code>_router</code> trace attached to
+routed results (<code>loom/_router.py</code>). To feed that panel, emit structured records
+from those modules into the <strong>same sink</strong> (e.g. a second table <code>retries(ts,
+provider, reason, kind)</code> where <code>kind ∈ {retry, failover}</code>).</p>
+<hr />
+<h2 id="suggested-build-order">Suggested build order<a class="headerlink" href="#suggested-build-order" title="Permanent link">&para;</a></h2>
+<p>Each stage is independently runnable and testable:</p>
+<ol>
+<li><strong>Sink + schema + aggregation functions</strong> — testable on its own against
+   seeded rows, no web layer required.</li>
+<li><strong>Flask JSON endpoints</strong> — verify with <code>curl</code> / browser.</li>
+<li><strong>Dashboard template + CSS + JS</strong> — the visual layer matching the mockup.</li>
+</ol>
+<p>Optional follow-ups, in priority order:</p>
+<ol>
+<li>Add <code>cost_saved_usd</code> to <code>log_call</code> + sink for a truthful "Cost saved" card.</li>
+<li>Emit retry/failover events into the sink for that panel.</li>
+<li>Swap the SQLite sink for Postgres (reuse <code>seed_db.py</code>) for multi-node
+   deployments, or push to a time-series backend for long retention.</li>
+</ol>
+<hr />
+<h2 id="design-principles-to-preserve">Design principles to preserve<a class="headerlink" href="#design-principles-to-preserve" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Library stays handler-free.</strong> The sink is opt-in and lives under
+  <code>loom/observability/</code>; importing <code>loom</code> must not start writing a database.</li>
+<li><strong>No per-call-site changes.</strong> Capturing happens entirely through the logging
+  handler, so existing <code>generate()</code> calls light up the dashboard for free.</li>
+<li><strong>Endpoints are read-only</strong> and sit behind the app's existing auth.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.indexes", "navigation.top", "search.suggest", "search.highlight", "content.code.copy", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

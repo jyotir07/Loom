@@ -1,14 +1,52 @@
+# Secrets / local config
 .env
+.env.local
+
+# Python bytecode / caches
 __pycache__/
 *.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+
+# Virtual environments
 venv/
 .venv/
+
+# Editors / IDEs
 .idea/
 .vscode/
-docs/roadmap.md
-PROJECT_CONTEXT.txt
+*.swp
+
 # Python build artifacts
 build/
 dist/
 *.egg-info/
-.pytest_cache/
+*.egg
+
+# Test coverage
+.coverage
+coverage.xml
+htmlcov/
+
+# Runtime databases (SQLiteSink event store)
+*.db
+*.db-wal
+*.db-shm
+loom_events.db
+
+# NOTE: site/ is intentionally NOT ignored.
+# It holds the prebuilt MkDocs static site that Vercel serves directly
+# from the GitHub repo (Output Directory = site, no build step).
+
+# Node
+node_modules/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Project notes (not for VCS)
+docs/roadmap.md
+PROJECT_CONTEXT.txt
