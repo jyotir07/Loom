@@ -42,6 +42,9 @@ nav:
   - Getting started: migration_guide.md
   - API reference: api_reference.md
   - Stability: stability.md
+  - What to do with Loom:
+      - what-to-do/index.md
+      - Observability dashboard: what-to-do/observability_dashboard.md
   - Roadmap: roadmap.md
   - Architecture: diag.md
 
@@ -50,7 +53,11 @@ markdown_extensions:
   - attr_list
   - def_list
   - footnotes
+  - md_in_html
   - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
   - pymdownx.highlight:
       anchor_linenums: true
       line_spans: __span
