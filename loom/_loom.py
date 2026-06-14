@@ -31,9 +31,11 @@ from typing import Any
 
 from loom import _context
 from loom import batch_providers as _batch_providers
+from loom import context_cache_providers as _ctx_cache_providers
 from loom import providers as _providers
 from loom._cache import CacheBackend
 from loom._call_key import call_key
+from loom._context_cache import ContextCacheHandle
 from loom._dedup import InFlight
 from loom._logging import log_call
 from loom._pricing import (
@@ -339,6 +341,52 @@ class Loom:
             _module=module,
             _context_factory=_ctx_factory,
         )
+
+    # ---------------- context cache ----------------
+
+    def create_context_cache(
+        self,
+        *,
+        provider: str,
+        model: str,
+        contents: Any,
+        system_instruction: Any | None = None,
+        ttl_seconds: float | None = None,
+        display_name: str | None = None,
+    ) -> ContextCacheHandle:
+        """Create a vendor-side context cache and return a handle.
+
+        Pass `handle.id` through `params={"cached_content": handle.id}`
+        on subsequent generate() calls to reference it. Only Gemini has
+        a registered adapter in this chunk; other providers raise
+        ProviderError("no Loom context-cache adapter yet").
+        """
+        module = _ctx_cache_providers._module_for(provider)
+
+        def _ctx_factory():
+            return _context.LoomContext(api_keys=self.api_keys)
+
+        with _context.use(_ctx_factory()):
+            info = module.create(
+                model,
+                contents=contents,
+                system_instruction=system_instruction,
+                ttl_seconds=ttl_seconds,
+                display_name=display_name,
+            )
+        return ContextCacheHandle(
+            id=info["id"],
+            provider=provider,
+            model=model,
+            display_name=info.get("display_name") or display_name,
+            ttl_seconds=ttl_seconds,
+            _module=module,
+            _context_factory=_ctx_factory,
+        )
+
+    def delete_context_cache(self, handle: ContextCacheHandle) -> None:
+        """Delete the vendor-side resource pointed to by `handle`."""
+        handle.delete()
 
     def run_batch(
         self,
