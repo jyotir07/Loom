@@ -66,3 +66,10 @@ markdown_extensions:
 
 plugins:
   - search
+
+# Legacy planning notes — kept in the repo for history but intentionally
+# excluded from the public nav.
+not_in_nav: |
+  APIS.md
+  diagram1.md
+  models_desc.md
