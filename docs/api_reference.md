@@ -500,13 +500,69 @@ Only OpenAI has a registered batch adapter in this chunk. Anthropic
 and Gemini follow the same protocol and register in
 `loom/batch_providers/__init__.py` when added.
 
+### Smart model routing
+
+Cheap-first / escalate-on-failure as a single primitive. Declare an
+ordered list of candidates (cheapest first) and an optional
+`validator`. Loom tries them in order; the first response that passes
+the validator wins.
+
+```python
+from loom import Loom, Router, Candidate
+
+router = Router(
+    candidates=[
+        ("openai", "text", "gpt-4o-mini"),                       # tuple shorthand
+        Candidate("anthropic", "text", "claude-haiku-4-5"),
+        ("openai", "text", "gpt-4o", {"temperature": 0.2}),      # tuple + params
+    ],
+    validator=lambda result: len(result["text"]) > 40,
+)
+
+client = Loom.from_env()
+result = client.route(router, prompt="Explain quantum entanglement.")
+
+result["text"]                  # whichever candidate won
+result["_router"]["used"]       # "openai:text:gpt-4o-mini"
+result["_router"]["tried"]      # list of every candidate attempted
+result["_router"]["passed"]     # True iff the validator accepted
+```
+
+Per-candidate `params` are merged on top of the `params` passed to
+`route()` — candidate params win on conflict. That's how you bake
+quality knobs (temperature bumps, longer max_tokens) into the
+escalation tier without rewriting them on each call.
+
+Failure semantics:
+
+- A candidate that raises `LoomError` (any subclass — `AuthError`,
+  `RateLimitError`, `ProviderError`, `ModelNotFoundError`) is recorded
+  and skipped. Loom tries the next candidate.
+- Non-Loom exceptions propagate immediately — those are programmer
+  errors, not vendor flakiness.
+- If every candidate raises, the **last** exception is re-raised.
+- If candidates succeed but the validator rejects all of them, the
+  **last** successful response is returned with
+  `result["_router"]["passed"] = False`. The caller still has an
+  answer; they decide whether to use it.
+
+Async surface is identical:
+
+```python
+result = await aclient.route(router, prompt="…")
+```
+
+Routing composes with the rest of the optimization layer — each
+candidate call goes through the normal `generate()` path (cache,
+dedup, retry). Cache hits on the cheap candidate short-circuit the
+chain at zero cost.
+
 ### What's still pending in Phase 3
 
 The roadmap items not yet implemented in this branch:
 
 - **Gemini context caching** (`CachedContent` resource API — different shape
   from header/block-based caching; needs its own surface)
-- **Smart model routing** (cheap-first with confidence-driven escalation)
 - **Batch API: more vendors** (Anthropic and Gemini batch adapters —
   OpenAI is wired up)
 - **Cross-vendor failover** (the "failover" half of retry-and-failover —
