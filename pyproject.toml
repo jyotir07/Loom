@@ -49,6 +49,9 @@ where = ["."]
 include = ["loom*"]
 exclude = ["tests*", "templates*", "static*", "docs*"]
 
+[tool.setuptools.package-data]
+"loom.observability" = ["templates/*.html"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-ra"

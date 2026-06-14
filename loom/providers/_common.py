@@ -19,6 +19,7 @@ def require_env(name: str) -> str:
       1. Programmatic api_keys passed into Loom(api_keys=...) — checked via
          the active LoomContext.
       2. The process environment variable of the same name.
+      3. The configured KeyVault (if any) on the active LoomContext.
     """
     ctx = _context.current()
     if ctx is not None:
@@ -26,9 +27,15 @@ def require_env(name: str) -> str:
         if override:
             return override
     value = (os.getenv(name) or "").strip()
-    if not value:
-        raise AuthError(f"environment variable {name} is required but not set")
-    return value
+    if value:
+        return value
+    if ctx is not None and ctx.vault is not None:
+        vault_value = ctx.vault.get(name)
+        if vault_value:
+            vault_value = vault_value.strip()
+            if vault_value:
+                return vault_value
+    raise AuthError(f"environment variable {name} is required but not set")
 
 
 def fetch_image_b64(url: str, timeout: float = 60.0) -> dict[str, str]:

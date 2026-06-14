@@ -170,6 +170,25 @@ client = Loom(
 `api_keys` wins over the process environment, so this is the right
 hook for services that pull keys from Vault / Secrets Manager at boot.
 
+**Or use the built-in vault integration.** When you don't want to write
+the fetch glue yourself, point Loom at one of the bundled backends:
+
+```python
+from loom import Loom, AWSSecretsManagerVault
+
+vault = AWSSecretsManagerVault(
+    region_name="us-east-1",
+    prefix="prod/loom/",
+)
+client = Loom.from_env(vault=vault)
+# require_env() now checks api_keys -> env -> vault, in that order.
+```
+
+GCP Secret Manager and HashiCorp Vault backends ship too — see
+`docs/api_reference.md` → "Key vault integration". Vault values are
+cached in-process (5-minute default TTL) so key rotation costs you
+one round-trip per key, not one per call.
+
 ---
 
 ## Custom catalogs
@@ -261,8 +280,8 @@ Loom(retry=None)                                 # don't retry on rate-limits
 ```
 
 See `docs/api_reference.md` → "Optimization layer" for the full
-flow + the list of items still pending in Phase 3 (more batch
-adapters, observability dashboard, vault integration).
+flow + the list of items still pending in Phase 3 (Gemini batch
+adapter).
 
 ### Prompt caching
 
@@ -390,6 +409,34 @@ results = client.run_batch(requests, poll_interval=60.0)
 Results align element-for-element to your submitted requests. Failed
 rows appear as `{"kind": "error", "error": "...", "custom_id": "..."}`
 in-place; the batch as a whole still completes.
+
+---
+
+## Seeing what it costs you
+
+If you want a queryable record of every call and a one-page
+cost/latency/cache-hit summary, turn on the bundled observability sink
++ dashboard:
+
+```python
+import logging
+from flask import Flask
+from loom.observability import SQLiteSink, LoomLogHandler, make_dashboard
+
+sink = SQLiteSink("loom_events.db")
+logging.getLogger("loom").addHandler(LoomLogHandler(sink))
+
+app = Flask(__name__)
+app.register_blueprint(make_dashboard(sink), url_prefix="/loom-admin")
+```
+
+Now every `loom.generate(...)` call lands in `loom_events.db` and the
+dashboard at `/loom-admin/` shows cost by provider, top spend by model,
+cache hit rate, dedup rate, and the last 25 calls. Time window picker
+defaults to last 24h.
+
+The dashboard has no built-in auth — wrap it in your host app's login,
+just like any internal admin page.
 
 ---
 

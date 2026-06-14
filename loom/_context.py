@@ -16,7 +16,7 @@ from __future__ import annotations
 from contextlib import contextmanager
 from contextvars import ContextVar
 from dataclasses import dataclass, field
-from typing import Iterator
+from typing import Any, Iterator
 
 
 @dataclass
@@ -24,6 +24,7 @@ class LoomContext:
     """State the providers can see during a single generate() call."""
 
     api_keys: dict[str, str] = field(default_factory=dict)
+    vault: Any | None = None  # KeyVault-shaped; Any to avoid circular import
 
 
 _current: ContextVar[LoomContext | None] = ContextVar(

@@ -47,6 +47,13 @@ from loom.types import (
     TextResponse,
     Usage,
 )
+from loom.vault import (
+    AWSSecretsManagerVault,
+    GCPSecretManagerVault,
+    HashiCorpVaultBackend,
+    InMemoryVault,
+    KeyVault,
+)
 
 __all__ = [
     "Loom",
@@ -74,6 +81,11 @@ __all__ = [
     "ImagePayload",
     "Usage",
     "Cost",
+    "KeyVault",
+    "InMemoryVault",
+    "AWSSecretsManagerVault",
+    "GCPSecretManagerVault",
+    "HashiCorpVaultBackend",
 ]
 
 __version__ = "0.1.0"
