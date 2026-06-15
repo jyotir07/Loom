@@ -40,7 +40,7 @@ class MemoryBackend:
 class YamlBackend:
     """Backend that reads a YAML file and parses it into the catalog dict.
 
-    Requires PyYAML (install Loom with the `yaml` extra: `pip install loom-weave[yaml]`).
+    Requires PyYAML (install Loom with the `yaml` extra: `pip install loom-router[yaml]`).
     The file must match Loom's catalog schema — the same shape as the
     default `loom.catalog._data.CATALOG`.
     """
@@ -58,7 +58,7 @@ class YamlBackend:
         except ImportError as exc:
             raise ImportError(
                 "loom.catalog.YamlBackend requires PyYAML. "
-                "Install with `pip install loom-weave[yaml]` or `pip install pyyaml`."
+                "Install with `pip install loom-router[yaml]` or `pip install pyyaml`."
             ) from exc
 
         if not self._path.is_file():

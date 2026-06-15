@@ -172,7 +172,7 @@ c.resolve(provider, modality, model_id) -> (upstream_model, params)
 `loom.catalog.backends` ships:
 
 - `MemoryBackend(data)` — wraps an in-memory dict.
-- `YamlBackend(path)` — reads a YAML file. Needs `pip install loom-weave[yaml]`.
+- `YamlBackend(path)` — reads a YAML file. Needs `pip install loom-router[yaml]`.
 
 Postgres backend lands when an internal project asks for it; the
 `CatalogBackend` protocol is intentionally tiny so it'll be a small
