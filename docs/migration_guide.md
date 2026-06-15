@@ -10,7 +10,7 @@ This guide covers the common cases.
 ## Install
 
 ```bash
-pip install loom[openai]      # or loom[all] for every supported vendor
+pip install loom-weave[openai]      # or loom-weave[all] for every supported vendor
 ```
 
 Extras are optional dependency groups: `openai`, `anthropic`, `gemini`,

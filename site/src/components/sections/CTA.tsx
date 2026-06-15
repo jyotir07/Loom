@@ -67,7 +67,7 @@ export function CTA() {
           className="mt-12 inline-block font-mono text-[12px] text-white/40 rounded-md border border-white/10 bg-black/40 px-4 py-2.5"
         >
           <span className="text-white/30 select-none">$ </span>
-          pip install loom
+          pip install loom-weave
         </motion.div>
       </div>
     </section>
