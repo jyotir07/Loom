@@ -21,7 +21,7 @@ venv/
 
 # Python build artifacts
 build/
-dist/
+# dist/
 *.egg-info/
 *.egg
 
