@@ -1,3 +1,6 @@
+[![PyPI version](https://img.shields.io/pypi/v/loom-router)](https://pypi.org/project/loom-router/)
+[![Python](https://img.shields.io/pypi/pyversions/loom-router)](https://pypi.org/project/loom-router/)
+[![License](https://img.shields.io/github/license/jyotir07/Loom)](https://github.com/jyotir07/Loom/blob/main/LICENSE)
 # Loom
 
 *One API for every AI provider. Built once, used everywhere.*
