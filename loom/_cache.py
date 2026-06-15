@@ -119,7 +119,7 @@ class RedisCache:
             except ImportError as exc:
                 raise ImportError(
                     "loom.RedisCache requires the `redis` package. "
-                    "Install with `pip install loom[redis]` or `pip install redis`."
+                    "Install with `pip install loom-weave[redis]` or `pip install redis`."
                 ) from exc
             self._client = redis.Redis.from_url(self.url, decode_responses=False)
         return self._client

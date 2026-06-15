@@ -23,7 +23,7 @@ const cols = [
     links: [
       { label: "Roadmap", href: "#" },
       { label: "Stability", href: "#" },
-      { label: "Contact", href: "mailto:hello@loom.dev" },
+      { label: "Contact", href: "mailto:jyotiraditya.singh.tech@gmail.com" },
     ],
   },
 ];

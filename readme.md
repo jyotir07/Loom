@@ -144,7 +144,7 @@ Every call is logged with provider, model, latency, token counts, and cost (in b
 ### Installation
 
 ```bash
-pip install loom
+pip install loom-weave
 ```
 
 ### Minimum viable usage
