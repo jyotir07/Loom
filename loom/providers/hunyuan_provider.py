@@ -29,7 +29,7 @@ def _client():
     except ImportError as exc:
         raise ImportError(
             "loom hunyuan provider requires tencentcloud-sdk-python. "
-            "Install with `pip install loom-weave[tencent]`."
+            "Install with `pip install loom-router[tencent]`."
         ) from exc
 
     secret_id = require_env("TENCENT_SECRET_ID")
