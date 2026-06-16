@@ -117,6 +117,11 @@ def index():
     return render_template("index.html")
 
 
+@app.get("/models_catelog/docs")
+def docs():
+    return render_template("docs.html")
+
+
 @app.get("/models_catelog/api/catalog")
 def catalog():
     return jsonify({
