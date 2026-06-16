@@ -5,15 +5,15 @@ const cols = [
   {
     title: "Product",
     links: [
-      { label: "Features", href: "#features" },
-      { label: "Architecture", href: "#architecture" },
-      { label: "Cost", href: "#" },
+      { label: "Features", href: "/#features" },
+      { label: "Architecture", href: "/#architecture" },
+      { label: "Cost", href: "/#cost" },
     ],
   },
   {
     title: "Developers",
     links: [
-      { label: "Docs", href: "#dx" },
+      { label: "Docs", href: "/docs" },
       { label: "GitHub", href: "https://github.com/jyotir07/Loom" },
       { label: "Changelog", href: "https://github.com/jyotir07/Loom/blob/main/CHANGELOG.md" },
     ],
