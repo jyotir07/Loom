@@ -6,9 +6,9 @@ import { useState, useEffect } from "react";
 import { Github, ArrowUpRight, Menu, X } from "lucide-react";
 
 const links = [
-  { href: "#features", label: "Features" },
-  { href: "#architecture", label: "Architecture" },
-  { href: "#dx", label: "Docs" },
+  { href: "/#features", label: "Features" },
+  { href: "/#architecture", label: "Architecture" },
+  { href: "/docs", label: "Docs" },
   {
     href: "https://github.com/jyotir07/Loom",
     label: "GitHub",
