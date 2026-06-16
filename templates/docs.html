@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Loom · Docs</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+  <main class="app">
+    <header class="app-header">
+      <div>
+        <h1>Loom documentation</h1>
+        <p class="subtitle">One contract for every AI vendor — how to use it.</p>
+      </div>
+      <div class="header-actions">
+        <a href="{{ url_for('index') }}" class="logout-link">&larr; Back to app</a>
+        <a href="{{ url_for('logout') }}" class="logout-link">Log out</a>
+      </div>
+    </header>
+
+    <div class="docs-layout">
+      <aside class="docs-sidebar">
+        <nav class="docs-toc">
+          <span class="docs-toc-title">On this page</span>
+          <a href="#overview">Mental model</a>
+          <a href="#install">Install</a>
+          <a href="#calling">Three ways to call</a>
+          <a href="#keys">Configuring API keys</a>
+          <a href="#generate">The generate call</a>
+          <a href="#response">The response shape</a>
+          <a href="#async">Async</a>
+          <a href="#errors">Error handling</a>
+          <a href="#catalog">Custom catalogs</a>
+          <a href="#optimize">Optimization features</a>
+          <a href="#observability">Observability</a>
+        </nav>
+      </aside>
+
+      <article class="docs-content">
+
+        <section id="overview">
+          <h2>The mental model</h2>
+          <p>Loom gives you <strong>one function</strong> for every provider:</p>
+          <pre class="doc-code"><code>import loom
+
+result = loom.generate(
+    provider="openai",
+    modality="text",
+    model="gpt-4o-mini",
+    prompt="Say hi in five words.",
+)
+print(result["text"])
+print(result["cost"]["usd"])</code></pre>
+          <p>
+            Four things identify <em>what</em> to run — <code>provider</code>,
+            <code>modality</code>, <code>model</code>, <code>prompt</code> — and the
+            return shape is the same no matter which vendor answered. Everything
+            else (keys, retries, caching, cost accounting, logging) is handled
+            inside Loom.
+          </p>
+          <p>Three concepts are worth holding onto:</p>
+          <ul>
+            <li><strong>Catalog</strong> — the list of models Loom knows about. A
+              <code>model</code> string like <code>gpt-4o-mini</code> is resolved
+              against the catalog to an upstream model ID plus default params.</li>
+            <li><strong>Provider adapter</strong> — the per-vendor module that
+              actually makes the call using the vendor's native SDK.</li>
+            <li><strong>Loom client</strong> — ties a catalog, your API keys, and
+              the optimization layer together. The module-level
+              <code>loom.generate(...)</code> runs on a default client built from
+              your environment.</li>
+          </ul>
+        </section>
+
+        <section id="install">
+          <h2>Install</h2>
+          <pre class="doc-code"><code>pip install "loom-router[openai]"      # one vendor
+pip install "loom-router[all]"         # every supported vendor</code></pre>
+          <p>
+            Extras are optional dependency groups: <code>openai</code>,
+            <code>anthropic</code>, <code>gemini</code>, <code>tencent</code>,
+            <code>yaml</code>, <code>redis</code>, <code>all</code>. Loom's only hard
+            dependencies are <code>requests</code> and <code>python-dotenv</code>, so
+            installing with no extra gives you the catalog and dispatcher but no
+            vendor SDK.
+          </p>
+        </section>
+
+        <section id="calling">
+          <h2>Three ways to call</h2>
+          <p>
+            All three share the same catalog, cost computation, and logging — pick
+            based on how much control you need over configuration.
+          </p>
+
+          <h3>Module-level — simplest</h3>
+          <p>Runs on a default client built from <code>Loom.from_env()</code>. Best for scripts and notebooks.</p>
+          <pre class="doc-code"><code>import loom
+
+result = loom.generate(
+    provider="anthropic",
+    modality="text",
+    model="claude-sonnet-4-6",
+    prompt="Write three subject lines for a launch email.",
+)</code></pre>
+
+          <h3>from_env — long-lived</h3>
+          <p>Build one client at startup and reuse it. Best for web apps and workers — avoids re-reading config on every call.</p>
+          <pre class="doc-code"><code>from loom import Loom
+
+client = Loom.from_env()        # reads keys from .env + environment
+
+result = client.generate(
+    provider="anthropic",
+    modality="text",
+    model="claude-sonnet-4-6",
+    prompt="...",
+)</code></pre>
+
+          <h3>Explicit construction</h3>
+          <p>Pass everything in directly — keys, catalog, cache. Best when config comes from a secrets manager rather than the environment.</p>
+          <pre class="doc-code"><code>from loom import Loom
+
+client = Loom(
+    api_keys={"OPENAI_API_KEY": "sk-...", "ANTHROPIC_API_KEY": "sk-ant-..."},
+    local_currency="USD",
+    local_to_usd=1.0,
+)</code></pre>
+        </section>
+
+        <section id="keys">
+          <h2>Configuring API keys</h2>
+          <p>
+            Loom looks for a vendor key in three places, in order: the
+            <code>api_keys</code> dict you passed the client, the process
+            environment, then an optional vault backend. Keys use the standard
+            vendor names (<code>OPENAI_API_KEY</code>, <code>ANTHROPIC_API_KEY</code>,
+            <code>GEMINI_API_KEY</code>, …).
+          </p>
+
+          <h3>Environment / .env — the default</h3>
+          <p><code>Loom.from_env()</code> loads a <code>.env</code> file from the working directory if present, without overriding values already set in the environment.</p>
+          <pre class="doc-code"><code># .env
+OPENAI_API_KEY=sk-...
+ANTHROPIC_API_KEY=sk-ant-...</code></pre>
+
+          <h3>Programmatic</h3>
+          <p>Pass keys in; they win over the environment, which is the right hook for services pulling secrets at boot.</p>
+          <pre class="doc-code"><code>from loom import Loom
+
+client = Loom(api_keys={
+    "OPENAI_API_KEY": secrets_manager.get("openai/prod"),
+})</code></pre>
+
+          <h3>Vault</h3>
+          <p>Point Loom at a bundled backend (AWS Secrets Manager, GCP Secret Manager, HashiCorp Vault) and let it fetch keys lazily, cached in-process with a 5-minute TTL.</p>
+          <pre class="doc-code"><code>from loom import Loom, AWSSecretsManagerVault
+
+client = Loom.from_env(
+    vault=AWSSecretsManagerVault(region_name="us-east-1", prefix="prod/loom/"),
+)</code></pre>
+        </section>
+
+        <section id="generate">
+          <h2>The generate call</h2>
+          <pre class="doc-code"><code>client.generate(
+    provider="openai",     # vendor key
+    modality="text",       # "text" | "image" | "video"
+    model="gpt-4o-mini",   # catalog model id
+    prompt="...",          # the user prompt
+    params={...},          # optional, merged over catalog defaults
+    use_cache=True,        # optional, per-call cache opt-out
+)</code></pre>
+          <ul>
+            <li><code>params</code> is merged on top of the catalog defaults for
+              that model, so you only specify what you want to override
+              (<code>max_tokens</code>, <code>temperature</code>, vendor-specific
+              flags like <code>system</code>, <code>size</code>, etc.).</li>
+            <li><code>use_cache=False</code> forces a fresh upstream call even when a
+              cache is configured.</li>
+            <li>Some catalog model IDs bake params in. For example
+              <code>gpt-image-1-low</code> sets <code>quality=low</code> for you —
+              you can still override via <code>params</code>.</li>
+          </ul>
+        </section>
+
+        <section id="response">
+          <h2>The response shape</h2>
+          <p>Every successful call returns a dict with a <code>kind</code> discriminator plus <code>usage</code> and <code>cost</code>.</p>
+          <h3>Text</h3>
+          <pre class="doc-code"><code>{
+    "kind": "text",
+    "text": "...",
+    "usage": {"input_tokens": 12, "output_tokens": 30, "cached_tokens": 0},
+    "cost": {"usd": 0.000028, "local": 0.0023, "local_currency": "INR"},
+}</code></pre>
+          <h3>Image</h3>
+          <pre class="doc-code"><code>{
+    "kind": "image",
+    "images": [{"mime_type": "image/png", "data_b64": "..."}],
+    "cost": {"usd": 0.01, "local": 0.83, "local_currency": "INR"},
+}</code></pre>
+          <p>Cost is reported in USD and a configurable local currency:</p>
+          <pre class="doc-code"><code>Loom(local_currency="USD", local_to_usd=1.0)    # report USD only
+Loom(local_currency="EUR", local_to_usd=1.08)   # 1 EUR ~= 1.08 USD</code></pre>
+        </section>
+
+        <section id="async">
+          <h2>Async</h2>
+          <p>Every call has an async sibling. Use the module-level <code>agenerate</code>, or an <code>AsyncLoom</code> client for a long-lived service.</p>
+          <pre class="doc-code"><code>import asyncio
+from loom import AsyncLoom
+
+aclient = AsyncLoom.from_env()
+
+async def main():
+    result = await aclient.generate(
+        provider="gemini",
+        modality="text",
+        model="gemini-2.5-pro",
+        prompt="...",
+    )
+    return result["text"]
+
+asyncio.run(main())</code></pre>
+          <pre class="doc-code"><code># one-off
+import loom
+result = await loom.agenerate(provider="openai", modality="text",
+                              model="gpt-4o-mini", prompt="...")</code></pre>
+        </section>
+
+        <section id="errors">
+          <h2>Error handling</h2>
+          <p>Loom maps each vendor's exception hierarchy onto one shared set, so you catch the same types regardless of provider.</p>
+          <pre class="doc-code"><code>from loom import AuthError, RateLimitError, ModelNotFoundError, ProviderError
+
+try:
+    result = loom.generate(provider=..., modality=..., model=..., prompt=...)
+except AuthError:
+    ...            # missing / invalid key - a config problem
+except RateLimitError:
+    ...            # back off, retry, or fail over to another model
+except ModelNotFoundError:
+    ...            # catalog doesn't know that (provider, modality, model)
+except ProviderError:
+    ...            # anything else from the upstream call</code></pre>
+        </section>
+
+        <section id="catalog">
+          <h2>Custom catalogs</h2>
+          <p>
+            To run your own model list (different pricing, internal IDs, an
+            approved subset), point Loom at a YAML file. The schema matches the
+            bundled catalog (<code>loom/catalog/_data.py</code>).
+          </p>
+          <pre class="doc-code"><code># models.yaml
+openai:
+  label: OpenAI
+  modalities:
+    text:
+      - id: small
+        name: Cheap default
+        model: gpt-4o-mini
+        input_inr_per_1m: 14.4578
+        output_inr_per_1m: 57.8312</code></pre>
+          <pre class="doc-code"><code>from loom import Loom, Catalog
+
+client = Loom(catalog=Catalog.from_yaml("models.yaml"))
+client.generate(provider="openai", modality="text", model="small", prompt="hi")</code></pre>
+          <p>You can also register models programmatically with <code>catalog.register_model(...)</code>.</p>
+        </section>
+
+        <section id="optimize">
+          <h2>Optimization features</h2>
+          <p>
+            These are off (cache) or on with safe defaults (retry, dedup). Turn
+            them on once your behavior is stable. Each composes with the others.
+          </p>
+
+          <h3>Response cache</h3>
+          <p>Identical <code>(provider, model, prompt, params)</code> calls hit the cache instead of the API.</p>
+          <pre class="doc-code"><code>from loom import Loom, InMemoryCache, RedisCache
+
+client = Loom(cache=InMemoryCache(maxsize=10_000, ttl=3600))
+
+# multi-process deployments - share the cache across workers
+client = Loom(cache=RedisCache(url="redis://internal:6379/0", ttl=3600))</code></pre>
+
+          <h3>Vendor prompt caching</h3>
+          <p>
+            OpenAI and DeepSeek cache long prompt prefixes automatically — the
+            saving shows up in <code>result["usage"]["cached_tokens"]</code> and is
+            already discounted in <code>result["cost"]</code>. Anthropic is opt-in:
+          </p>
+          <pre class="doc-code"><code>loom.generate(
+    provider="anthropic", modality="text", model="claude-haiku-4-5",
+    prompt=user_question,
+    params={"system": LONG_STATIC_SYSTEM_PROMPT, "cache_system": True},
+)</code></pre>
+          <p>Gemini uses an uploaded context-cache <em>resource</em> referenced by ID — the right shape when one big context answers many small questions:</p>
+          <pre class="doc-code"><code>cache = client.create_context_cache(
+    provider="gemini", model="gemini-2.5-flash",
+    contents=long_static_document, ttl_seconds=600,
+)
+result = client.generate(
+    provider="gemini", modality="text", model="gemini-2.5-flash",
+    prompt=user_question, params={"cached_content": cache.id},
+)
+client.delete_context_cache(cache)</code></pre>
+
+          <h3>Cheap-first routing</h3>
+          <p>Try a small model first; escalate only when a validator says the answer isn't good enough.</p>
+          <pre class="doc-code"><code>from loom import Loom, Router
+
+router = Router(
+    candidates=[
+        ("openai", "text", "gpt-4o-mini"),   # try cheap first
+        ("openai", "text", "gpt-4o"),        # escalate
+    ],
+    validator=lambda result: "I don't know" not in result["text"],
+)
+
+result = Loom.from_env().route(router, prompt=user_question)
+print(result["_router"]["used"])   # which model actually answered</code></pre>
+
+          <h3>Cross-vendor failover</h3>
+          <p>Stay up when one vendor flakes by falling through an equivalence map.</p>
+          <pre class="doc-code"><code>from loom import Loom, Router
+
+router = Router.failover(provider="openai", modality="text", model="gpt-4o-mini")
+result = Loom.from_env().route(router, prompt=question)</code></pre>
+          <p>
+            Loom tries OpenAI first; on failure it falls through bundled
+            equivalents (<code>claude-haiku-4-5</code>, <code>gemini-2.5-flash</code>,
+            <code>deepseek-v3</code> by default). You need keys for every vendor in
+            the chain.
+          </p>
+
+          <h3>Batch API</h3>
+          <p>For workloads that tolerate ~24h latency, vendor batch endpoints are ~50% cheaper. OpenAI and Anthropic batch adapters ship today.</p>
+          <pre class="doc-code"><code>from loom import Loom, BatchRequest
+
+client = Loom.from_env()
+
+handle = client.submit_batch([
+    BatchRequest(provider="openai", modality="text",
+                 model="gpt-4o-mini", prompt=text, custom_id=row_id)
+    for row_id, text in rows
+])
+results = handle.wait()          # aligned to input order; pick up later via handle.id
+
+# or block until done:
+results = client.run_batch(requests, poll_interval=60.0)</code></pre>
+          <p>Results align element-for-element to your requests; failed rows appear in place as <code>{"kind": "error", "error": "...", "custom_id": "..."}</code>.</p>
+
+          <h3>Per-call opt-outs</h3>
+          <pre class="doc-code"><code>client.generate(..., use_cache=False)   # skip the cache for this call
+Loom(dedup=False)                       # don't coalesce concurrent identical calls
+Loom(retry=None)                        # don't retry on rate limits</code></pre>
+        </section>
+
+        <section id="observability">
+          <h2>Observability</h2>
+          <p>Turn on the bundled SQLite sink + Flask dashboard for a queryable record of every call and a one-page cost/latency/cache summary.</p>
+          <pre class="doc-code"><code>import logging
+from flask import Flask
+from loom.observability import SQLiteSink, LoomLogHandler, make_dashboard
+
+sink = SQLiteSink("loom_events.db")
+logging.getLogger("loom").addHandler(LoomLogHandler(sink))
+
+app = Flask(__name__)
+app.register_blueprint(make_dashboard(sink), url_prefix="/loom-admin")</code></pre>
+          <p>
+            Every call now lands in <code>loom_events.db</code>, and
+            <code>/loom-admin/</code> shows cost by provider, top spend by model,
+            cache-hit rate, dedup rate, and the last 25 calls. The dashboard ships
+            without auth — wrap it in your host app's login like any internal admin
+            page.
+          </p>
+        </section>
+
+      </article>
+    </div>
+  </main>
+</body>
+</html>
