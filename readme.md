@@ -3,7 +3,7 @@
 [![License](https://img.shields.io/github/license/jyotir07/Loom)](https://github.com/jyotir07/Loom/blob/main/LICENSE)
 # Loom
 
-*One API for every AI provider. Built once, used everywhere.*
+*One API for every AI provider. Built once, used everywhere*
 
 ---
 
