@@ -1,7 +1,7 @@
 [![PyPI version](https://img.shields.io/pypi/v/loom-router)](https://pypi.org/project/loom-router/)
 [![Python](https://img.shields.io/pypi/pyversions/loom-router)](https://pypi.org/project/loom-router/)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![GitHub Stars](https://img.shields.io/github/stars/jyotir07/Loom?style=social)](https://github.com/jyotir07/Loom)
+<!-- [![GitHub Stars](https://img.shields.io/github/stars/jyotir07/Loom?style=social)](https://github.com/jyotir07/Loom) -->
 # Loom
 
 *One API for every AI provider. Built once, used everywhere*
