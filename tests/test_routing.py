@@ -423,3 +423,173 @@ def test_highest_quality_first_is_frontier_on_default_catalog():
     top = selector.select("highest_quality", modality="text")[0]
     meta = catalog.metadata(top.provider, "text", top.model)
     assert meta["quality_tier"] == "frontier"
+
+
+# ====================================================================
+# Intelligent routing wired into generate() (issue #46)
+# ====================================================================
+
+
+def _any_provider_factory(raise_for: dict | None = None):
+    """Generic fake dispatch that succeeds for any (provider, model)."""
+    calls: list[dict] = []
+    raise_for = raise_for or {}
+
+    def fake_generate(provider, modality, model, params, prompt):
+        calls.append({"provider": provider, "model": model})
+        if model in raise_for:
+            raise raise_for[model]
+        return {"kind": "text", "text": f"ok:{provider}:{model}"}
+
+    return calls, fake_generate
+
+
+def test_generate_with_providers_picks_best_in_order(monkeypatch):
+    calls, fake = _any_provider_factory()
+    monkeypatch.setattr("loom._loom._providers.generate", fake)
+
+    client = Loom(api_keys={"OPENAI_API_KEY": "k"})
+    expected = client._resolve_routing(
+        provider=None, model=None,
+        providers=["openai", "gemini"], router=None, modality="text",
+    ).candidates
+    result = client.generate(providers=["openai", "gemini"], prompt="hi")
+
+    # First candidate (openai's best) answers; no fallback needed.
+    assert result["_router"]["used"] == expected[0].label()
+    assert expected[0].provider == "openai"
+    assert len(calls) == 1
+
+
+def test_generate_with_providers_preserves_order_not_strategy(monkeypatch):
+    _, fake = _any_provider_factory()
+    monkeypatch.setattr("loom._loom._providers.generate", fake)
+
+    client = Loom(api_keys={"OPENAI_API_KEY": "k"})
+    # anthropic listed first -> it is tried first even though cheaper
+    # providers exist elsewhere.
+    result = client.generate(providers=["anthropic", "openai"], prompt="hi")
+    assert result["_router"]["used"].startswith("anthropic:")
+
+
+def test_generate_with_providers_fails_over(monkeypatch):
+    client = Loom(api_keys={"OPENAI_API_KEY": "k"}, retry=None)
+    cands = client._resolve_routing(
+        provider=None, model=None,
+        providers=["openai", "gemini"], router=None, modality="text",
+    ).candidates
+    up0, _ = client.catalog.resolve(cands[0].provider, "text", cands[0].model)
+
+    _, fake = _any_provider_factory(raise_for={up0: RateLimitError("cap")})
+    monkeypatch.setattr("loom._loom._providers.generate", fake)
+
+    result = client.generate(providers=["openai", "gemini"], prompt="hi")
+    assert result["_router"]["used"] == cands[1].label()
+    assert cands[1].provider == "gemini"
+
+
+def test_generate_with_router_strategy(monkeypatch):
+    calls, fake = _any_provider_factory()
+    monkeypatch.setattr("loom._loom._providers.generate", fake)
+
+    client = Loom(api_keys={"OPENAI_API_KEY": "k"})
+    expected = StrategySelector(client.catalog).select("cheapest")[0].label()
+    result = client.generate(router="cheapest", prompt="hi")
+    assert result["_router"]["used"] == expected
+    assert len(calls) == 1
+
+
+def test_generate_router_restricted_to_provider_subset(monkeypatch):
+    _, fake = _any_provider_factory()
+    monkeypatch.setattr("loom._loom._providers.generate", fake)
+
+    client = Loom(api_keys={"OPENAI_API_KEY": "k"})
+    result = client.generate(router="cheapest", providers=["openai"], prompt="hi")
+    assert result["_router"]["used"].startswith("openai:")
+
+
+def test_generate_modality_defaults_to_text(monkeypatch):
+    _, fake = _any_provider_factory()
+    monkeypatch.setattr("loom._loom._providers.generate", fake)
+
+    client = Loom(api_keys={"OPENAI_API_KEY": "k"})
+    # no modality passed -> defaults to "text"
+    result = client.generate(provider="openai", model="gpt-4o-mini", prompt="hi")
+    assert result["text"] == "ok:openai:gpt-4o-mini"
+    assert "_router" not in result  # explicit path is not tagged
+
+
+def test_generate_explicit_path_unchanged(monkeypatch):
+    calls, fake = _any_provider_factory()
+    monkeypatch.setattr("loom._loom._providers.generate", fake)
+
+    client = Loom(api_keys={"OPENAI_API_KEY": "k"})
+    result = client.generate(
+        provider="openai", modality="text", model="gpt-4o-mini", prompt="hi"
+    )
+    assert result["provider"] == "openai"
+    assert result["model"] == "gpt-4o-mini"
+    assert len(calls) == 1
+
+
+# ---------- invalid combinations ----------
+
+
+def test_generate_provider_with_providers_raises():
+    client = Loom(api_keys={"OPENAI_API_KEY": "k"})
+    with pytest.raises(ValueError):
+        client.generate(provider="openai", model="gpt-4o", providers=["gemini"], prompt="x")
+
+
+def test_generate_provider_with_router_raises():
+    client = Loom(api_keys={"OPENAI_API_KEY": "k"})
+    with pytest.raises(ValueError):
+        client.generate(provider="openai", model="gpt-4o", router="cheapest", prompt="x")
+
+
+def test_generate_empty_providers_raises():
+    client = Loom(api_keys={"OPENAI_API_KEY": "k"})
+    with pytest.raises(ValueError):
+        client.generate(providers=[], prompt="x")
+
+
+def test_generate_invalid_providers_type_raises():
+    client = Loom(api_keys={"OPENAI_API_KEY": "k"})
+    with pytest.raises(TypeError):
+        client.generate(providers="openai", prompt="x")
+
+
+def test_generate_unknown_router_raises():
+    client = Loom(api_keys={"OPENAI_API_KEY": "k"})
+    with pytest.raises(ValueError):
+        client.generate(router="smartest", prompt="x")
+
+
+def test_generate_requires_provider_and_model_without_routing():
+    client = Loom(api_keys={"OPENAI_API_KEY": "k"})
+    with pytest.raises(ValueError):
+        client.generate(prompt="x")
+    with pytest.raises(ValueError):
+        client.generate(provider="openai", prompt="x")  # model missing
+
+
+# ---------- async ----------
+
+
+def test_async_generate_with_router(monkeypatch):
+    async def fake_agenerate(provider, modality, model, params, prompt):
+        return {"kind": "text", "text": f"ok:{provider}:{model}"}
+
+    monkeypatch.setattr("loom._loom._providers.agenerate", fake_agenerate)
+    client = AsyncLoom(api_keys={"OPENAI_API_KEY": "k"})
+    expected = StrategySelector(client.catalog).select("cheapest")[0].label()
+    result = asyncio.run(client.generate(router="cheapest", prompt="hi"))
+    assert result["_router"]["used"] == expected
+
+
+def test_async_generate_provider_with_router_raises():
+    client = AsyncLoom(api_keys={"OPENAI_API_KEY": "k"})
+    with pytest.raises(ValueError):
+        asyncio.run(
+            client.generate(provider="openai", model="gpt-4o", router="cheapest", prompt="x")
+        )
