@@ -30,6 +30,11 @@ class Catalog:
     `data=` wins if both `data` and `backend` are passed.
     """
 
+    #: Recognized optional routing-metadata field names on a model entry.
+    #: Exposed so the routing/signals layer (and tests) can name the static
+    #: fields without importing the private `_data` module.
+    METADATA_FIELDS = METADATA_FIELDS
+
     def __init__(
         self,
         data: dict[str, Any] | None = None,
