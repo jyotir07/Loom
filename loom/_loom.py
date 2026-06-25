@@ -48,8 +48,14 @@ from loom._router import Router, run_route_async, run_route_sync
 from loom.batch import BatchHandle, BatchRequest
 from loom.catalog import Catalog
 from loom.errors import ProviderError
+from loom.routing import RoutingStrategy, StrategyLike, StrategySelector
 
 _UNSET: Any = object()
+
+# Strategy used when the caller names providers but no explicit strategy
+# (providers=[...] without router=), and — later — for fully automatic
+# selection. Balanced trades quality, cost, and latency.
+_DEFAULT_STRATEGY = RoutingStrategy.BALANCED
 
 
 class Loom:
@@ -140,14 +146,26 @@ class Loom:
     def generate(
         self,
         *,
-        provider: str,
-        modality: str,
-        model: str,
+        provider: str | None = None,
+        modality: str = "text",
+        model: str | None = None,
         prompt: str,
         params: dict[str, Any] | None = None,
         use_cache: bool = True,
+        providers: list[str] | None = None,
+        router: StrategyLike | None = None,
     ) -> dict[str, Any]:
         """Resolve `model` against the catalog and dispatch to the provider.
+
+        Three ways to choose where the call goes:
+
+            generate(provider=..., model=..., ...)   # explicit (unchanged)
+            generate(providers=[...], ...)           # ordered preference
+            generate(router="balanced", ...)         # strategy-based
+
+        `providers=` / `router=` route through the intelligent router and
+        cannot be combined with `provider=` / `model=`. `modality`
+        defaults to "text".
 
         `params` are merged on top of the catalog defaults for that
         model — caller params win on conflict.
@@ -158,6 +176,20 @@ class Loom:
             3. Otherwise   -> claim the slot, run with retry, fill cache,
                               notify waiters.
         """
+        if providers is not None or router is not None:
+            built = self._resolve_routing(
+                provider=provider, model=model,
+                providers=providers, router=router, modality=modality,
+            )
+            return self.route(
+                built, prompt=prompt, params=params, use_cache=use_cache
+            )
+        if provider is None or model is None:
+            raise ValueError(
+                "generate() requires provider= and model=, or use providers=/"
+                "router= for intelligent routing"
+            )
+
         upstream_model, catalog_params = self.catalog.resolve(
             provider, modality, model
         )
@@ -300,6 +332,70 @@ class Loom:
             self, router, prompt=prompt, params=params, use_cache=use_cache
         )
 
+    def _resolve_routing(
+        self,
+        *,
+        provider: str | None,
+        model: str | None,
+        providers: list[str] | None,
+        router: StrategyLike | None,
+        modality: str,
+    ) -> Router:
+        """Turn `providers=` / `router=` into a `Router` of candidates.
+
+        - `router=` ranks candidates with that strategy (optionally
+          restricted to `providers=` when both are given).
+        - `providers=` alone keeps the caller's provider order, picking
+          each provider's best model under the default strategy.
+
+        Raises ValueError/TypeError on invalid combinations or when no
+        candidate can be produced. The returned Router is then driven by
+        `route()`, so failover/validator/retry all apply unchanged.
+        """
+        if provider is not None or model is not None:
+            raise ValueError(
+                "provider=/model= cannot be combined with providers=/router= — "
+                "pass either an explicit provider+model or a routing selector"
+            )
+        if providers is not None:
+            if not isinstance(providers, (list, tuple)):
+                raise TypeError("providers= must be a list of provider names")
+            if len(providers) == 0:
+                raise ValueError("providers= must contain at least one provider")
+
+        selector = StrategySelector(self.catalog)
+        provider_subset = list(providers) if providers is not None else None
+
+        if router is not None:
+            strategy = RoutingStrategy.coerce(router)
+            candidates = selector.select(
+                strategy, modality=modality, providers=provider_subset
+            )
+            if not candidates:
+                where = (
+                    f" among providers {provider_subset}" if provider_subset else ""
+                )
+                raise ValueError(
+                    f"router={router!r} produced no candidates for modality "
+                    f"{modality!r}{where}"
+                )
+            return Router(candidates=candidates)
+
+        # providers= only: caller's order, best model per provider.
+        candidates = []
+        for prov in provider_subset:  # provider_subset is non-empty here
+            best = selector.select(
+                _DEFAULT_STRATEGY, modality=modality, providers=[prov]
+            )
+            if best:
+                candidates.append(best[0])
+        if not candidates:
+            raise ValueError(
+                f"none of the providers {provider_subset} offer modality "
+                f"{modality!r}"
+            )
+        return Router(candidates=candidates)
+
     # ---------------- batch ----------------
 
     def submit_batch(
@@ -417,13 +513,29 @@ class AsyncLoom(Loom):
     async def generate(  # type: ignore[override]
         self,
         *,
-        provider: str,
-        modality: str,
-        model: str,
+        provider: str | None = None,
+        modality: str = "text",
+        model: str | None = None,
         prompt: str,
         params: dict[str, Any] | None = None,
         use_cache: bool = True,
+        providers: list[str] | None = None,
+        router: StrategyLike | None = None,
     ) -> dict[str, Any]:
+        if providers is not None or router is not None:
+            built = self._resolve_routing(
+                provider=provider, model=model,
+                providers=providers, router=router, modality=modality,
+            )
+            return await self.route(
+                built, prompt=prompt, params=params, use_cache=use_cache
+            )
+        if provider is None or model is None:
+            raise ValueError(
+                "generate() requires provider= and model=, or use providers=/"
+                "router= for intelligent routing"
+            )
+
         upstream_model, catalog_params = self.catalog.resolve(
             provider, modality, model
         )
@@ -546,35 +658,51 @@ def _get_async_default() -> AsyncLoom:
 
 def generate(
     *,
-    provider: str,
-    modality: str,
-    model: str,
+    provider: str | None = None,
+    modality: str = "text",
+    model: str | None = None,
     prompt: str,
     params: dict[str, Any] | None = None,
+    providers: list[str] | None = None,
+    router: StrategyLike | None = None,
 ) -> dict[str, Any]:
-    """Module-level convenience — runs on the default Loom.from_env() instance."""
+    """Module-level convenience — runs on the default Loom.from_env() instance.
+
+    Accepts the same explicit (`provider`+`model`) or routing
+    (`providers=` / `router=`) entry points as `Loom.generate`.
+    """
     return _get_default().generate(
         provider=provider,
         modality=modality,
         model=model,
         prompt=prompt,
         params=params,
+        providers=providers,
+        router=router,
     )
 
 
 async def agenerate(
     *,
-    provider: str,
-    modality: str,
-    model: str,
+    provider: str | None = None,
+    modality: str = "text",
+    model: str | None = None,
     prompt: str,
     params: dict[str, Any] | None = None,
+    providers: list[str] | None = None,
+    router: StrategyLike | None = None,
 ) -> dict[str, Any]:
-    """Async module-level convenience — runs on the default AsyncLoom.from_env()."""
+    """Async module-level convenience — runs on the default AsyncLoom.from_env().
+
+    Accepts the same explicit or routing entry points as
+    `AsyncLoom.generate`.
+    """
     return await _get_async_default().generate(
         provider=provider,
         modality=modality,
         model=model,
         prompt=prompt,
         params=params,
+        providers=providers,
+        router=router,
     )
