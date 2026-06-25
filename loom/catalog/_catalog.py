@@ -12,6 +12,7 @@ import os
 from typing import Any
 
 from loom.catalog._data import CATALOG as _DEFAULT_CATALOG
+from loom.catalog._data import METADATA_FIELDS
 from loom.catalog.backends import CatalogBackend, MemoryBackend, YamlBackend
 from loom.errors import ModelNotFoundError
 
@@ -85,6 +86,40 @@ class Catalog:
                 upstream = entry.get("model", entry["id"])
                 params = dict(entry.get("params") or {})
                 return upstream, params
+        raise ModelNotFoundError(
+            f"unknown model '{model_id}' for {provider}/{modality}"
+        )
+
+    def metadata(
+        self, provider: str, modality: str, model_id: str
+    ) -> dict[str, Any]:
+        """Return optional routing metadata for a catalog entry.
+
+        Looks up the (provider, modality, model_id) entry and returns a
+        fresh dict containing only the recognized routing-metadata fields
+        that are present on it (context_window, quality_tier,
+        latency_class, capabilities). A known model that carries no
+        metadata returns an empty dict.
+
+        Raises ModelNotFoundError when the triple isn't in the catalog,
+        mirroring resolve(). The returned dict is a copy — mutating it
+        (including the capabilities list) never touches the catalog.
+
+        This is read-only metadata that *seeds* routing decisions; it
+        intentionally does not affect resolve() or the dispatch path.
+        """
+        for entry in self.models(provider, modality):
+            if entry["id"] == model_id:
+                meta: dict[str, Any] = {}
+                for field in METADATA_FIELDS:
+                    if field in entry:
+                        value = entry[field]
+                        # Copy mutable containers so callers can't mutate
+                        # the underlying catalog through the returned dict.
+                        if isinstance(value, list):
+                            value = list(value)
+                        meta[field] = value
+                return meta
         raise ModelNotFoundError(
             f"unknown model '{model_id}' for {provider}/{modality}"
         )

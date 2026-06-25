@@ -12,6 +12,12 @@ Phase 2 ships two:
 
 Postgres lands when an internal project asks for it; the interface is
 intentionally narrow so the implementation is a few dozen lines.
+
+Backends are schema-agnostic: they hand back whatever dict the source
+holds. Optional routing-metadata fields on a model entry (context_window,
+quality_tier, latency_class, capabilities) therefore round-trip through
+every backend unchanged — a YAML catalog can carry them with no code
+change here, and Catalog.metadata() reads them back.
 """
 
 from __future__ import annotations

@@ -9,6 +9,14 @@ Schema per model entry:
         "input_inr_per_1m" / "output_inr_per_1m": float (text models)
         "cost_inr": float (image models)
         "free":     bool (optional)
+
+        # Optional routing metadata (used by Catalog.metadata(); ignored by
+        # resolve() and the dispatch path). These are *hints* that seed the
+        # router until live metrics exist — not contracts. All optional.
+        "context_window": int    - max context window in tokens
+        "quality_tier":   str    - one of "nano" | "cheap" | "standard" | "frontier"
+        "latency_class":  str    - one of "fast" | "medium" | "slow"
+        "capabilities":   list   - e.g. ["text", "vision", "structured_output", "tool_calling"]
     }
 
 Vendor model IDs drift — if a call 4xxs with "model not found",
@@ -16,28 +24,48 @@ update the "model" field on the relevant entry; no other code
 change should be needed.
 """
 
+# Optional routing-metadata keys recognized on a model entry. Catalog.metadata()
+# returns only these (when present); everything else on an entry (id/name/model/
+# params/pricing/free) is irrelevant to routing.
+METADATA_FIELDS = ("context_window", "quality_tier", "latency_class", "capabilities")
+
 CATALOG = {
     "openai": {
         "label": "OpenAI",
         "modalities": {
             "text": [
                 {"id": "gpt-5-nano",  "name": "GPT-5 nano",
-                 "input_inr_per_1m": 4.8193, "output_inr_per_1m": 38.5541},
+                 "input_inr_per_1m": 4.8193, "output_inr_per_1m": 38.5541,
+                 "context_window": 400000, "quality_tier": "nano",
+                 "latency_class": "fast",
+                 "capabilities": ["text", "vision", "structured_output", "tool_calling"]},
                 {"id": "gpt-4.1-nano","name": "GPT-4.1 nano",
-                 "input_inr_per_1m": 9.6385, "output_inr_per_1m": 38.5541},
+                 "input_inr_per_1m": 9.6385, "output_inr_per_1m": 38.5541,
+                 "context_window": 1000000, "quality_tier": "nano",
+                 "latency_class": "fast",
+                 "capabilities": ["text", "vision", "structured_output", "tool_calling"]},
                 {"id": "gpt-4o-mini", "name": "GPT-4o mini",
-                 "input_inr_per_1m": 14.4578, "output_inr_per_1m": 57.8312},
+                 "input_inr_per_1m": 14.4578, "output_inr_per_1m": 57.8312,
+                 "context_window": 128000, "quality_tier": "cheap",
+                 "latency_class": "fast",
+                 "capabilities": ["text", "vision", "structured_output", "tool_calling"]},
                 {"id": "gpt-5-mini",  "name": "GPT-5 mini",
                  "input_inr_per_1m": 24.0963, "output_inr_per_1m": 192.7706},
                 {"id": "gpt-4.1-mini","name": "GPT-4.1 mini",
                  "input_inr_per_1m": 38.5541, "output_inr_per_1m": 154.2165},
                 {"id": "gpt-4o",      "name": "GPT-4o",
-                 "input_inr_per_1m": 241.25, "output_inr_per_1m": 965.00},
+                 "input_inr_per_1m": 241.25, "output_inr_per_1m": 965.00,
+                 "context_window": 128000, "quality_tier": "standard",
+                 "latency_class": "medium",
+                 "capabilities": ["text", "vision", "structured_output", "tool_calling"]},
                 {"id": "gpt-4.1",     "name": "GPT-4.1",
                  "input_inr_per_1m": 193.00, "output_inr_per_1m": 772.00},
                 {"id": "gpt-5",       "name": "GPT-5 (high)",
                  "model": "gpt-5", "params": {"reasoning_effort": "high"},
-                 "input_inr_per_1m": 120.4816, "output_inr_per_1m": 963.8530},
+                 "input_inr_per_1m": 120.4816, "output_inr_per_1m": 963.8530,
+                 "context_window": 400000, "quality_tier": "frontier",
+                 "latency_class": "slow",
+                 "capabilities": ["text", "vision", "structured_output", "tool_calling"]},
                 {"id": "gpt-5.1",     "name": "GPT-5.1",
                  "input_inr_per_1m": 120.4816, "output_inr_per_1m": 963.8530},
                 {"id": "gpt-5.2-codex","name": "GPT-5.2 / 5.3 Codex",
@@ -99,15 +127,27 @@ CATALOG = {
         "modalities": {
             "text": [
                 {"id": "gemini-3.1-flash-lite", "name": "Gemini 3.1 Flash-Lite",
-                 "input_inr_per_1m": 9.6385, "output_inr_per_1m": 38.5541},
+                 "input_inr_per_1m": 9.6385, "output_inr_per_1m": 38.5541,
+                 "context_window": 1000000, "quality_tier": "nano",
+                 "latency_class": "fast",
+                 "capabilities": ["text", "vision", "structured_output", "tool_calling"]},
                 {"id": "gemini-2.5-flash",      "name": "Gemini 2.5 Flash",
-                 "input_inr_per_1m": 14.4578, "output_inr_per_1m": 57.8312},
+                 "input_inr_per_1m": 14.4578, "output_inr_per_1m": 57.8312,
+                 "context_window": 1000000, "quality_tier": "cheap",
+                 "latency_class": "fast",
+                 "capabilities": ["text", "vision", "structured_output", "tool_calling"]},
                 {"id": "gemini-3-flash",        "name": "Gemini 3 Flash",
                  "input_inr_per_1m": 48.1927, "output_inr_per_1m": 289.1559},
                 {"id": "gemini-2.5-pro",        "name": "Gemini 2.5 Pro",
-                 "input_inr_per_1m": 120.4816, "output_inr_per_1m": 963.8530},
+                 "input_inr_per_1m": 120.4816, "output_inr_per_1m": 963.8530,
+                 "context_window": 1000000, "quality_tier": "standard",
+                 "latency_class": "medium",
+                 "capabilities": ["text", "vision", "structured_output", "tool_calling"]},
                 {"id": "gemini-3.1-pro",        "name": "Gemini 3.1 Pro",
-                 "input_inr_per_1m": 192.7706, "output_inr_per_1m": 1156.6236},
+                 "input_inr_per_1m": 192.7706, "output_inr_per_1m": 1156.6236,
+                 "context_window": 1000000, "quality_tier": "frontier",
+                 "latency_class": "slow",
+                 "capabilities": ["text", "vision", "structured_output", "tool_calling"]},
                 {"id": "gemini-2.0-flash",      "name": "Gemini 2.0 Flash",      "free": True},
                 {"id": "gemini-1.5-pro",        "name": "Gemini 1.5 Pro",        "free": True},
                 {"id": "gemini-1.5-flash",      "name": "Gemini 1.5 Flash",      "free": True},
@@ -139,15 +179,24 @@ CATALOG = {
                 {"id": "claude-haiku-4-5",
                  "name": "Claude Haiku 4.5",
                  "model": "claude-haiku-4-5-20251001",
-                 "input_inr_per_1m": 96.3853, "output_inr_per_1m": 481.9265},
+                 "input_inr_per_1m": 96.3853, "output_inr_per_1m": 481.9265,
+                 "context_window": 200000, "quality_tier": "cheap",
+                 "latency_class": "fast",
+                 "capabilities": ["text", "vision", "structured_output", "tool_calling"]},
                 {"id": "claude-sonnet-4-6",
                  "name": "Claude Sonnet 4.6",
                  "model": "claude-sonnet-4-6",
-                 "input_inr_per_1m": 289.1559, "output_inr_per_1m": 1445.7795},
+                 "input_inr_per_1m": 289.1559, "output_inr_per_1m": 1445.7795,
+                 "context_window": 200000, "quality_tier": "standard",
+                 "latency_class": "medium",
+                 "capabilities": ["text", "vision", "structured_output", "tool_calling"]},
                 {"id": "claude-opus-4-7",
                  "name": "Claude Opus 4.7",
                  "model": "claude-opus-4-7",
-                 "input_inr_per_1m": 481.9265, "output_inr_per_1m": 2409.6325},
+                 "input_inr_per_1m": 481.9265, "output_inr_per_1m": 2409.6325,
+                 "context_window": 200000, "quality_tier": "frontier",
+                 "latency_class": "slow",
+                 "capabilities": ["text", "vision", "structured_output", "tool_calling"]},
                 {"id": "claude-opus-4-1",
                  "name": "Claude 4.1 Opus",
                  "model": "claude-opus-4-1-20250805",
@@ -191,7 +240,10 @@ CATALOG = {
             "text": [
                 {"id": "deepseek-v3",     "name": "DeepSeek V3",
                  "model": "deepseek-chat",
-                 "input_inr_per_1m": 26.0240, "output_inr_per_1m": 106.0238},
+                 "input_inr_per_1m": 26.0240, "output_inr_per_1m": 106.0238,
+                 "context_window": 128000, "quality_tier": "cheap",
+                 "latency_class": "medium",
+                 "capabilities": ["text", "structured_output", "tool_calling"]},
                 {"id": "deepseek-v4-pro", "name": "DeepSeek V4 Pro",
                  "model": "deepseek-reasoner",
                  "input_inr_per_1m": 167.7104, "output_inr_per_1m": 335.4208},
