@@ -565,12 +565,14 @@ def test_generate_unknown_router_raises():
         client.generate(router="smartest", prompt="x")
 
 
-def test_generate_requires_provider_and_model_without_routing():
+def test_generate_incomplete_explicit_spec_raises():
+    # A half-specified explicit call is still an error (auto-selection only
+    # kicks in when provider AND model are both omitted).
     client = Loom(api_keys={"OPENAI_API_KEY": "k"})
     with pytest.raises(ValueError):
-        client.generate(prompt="x")
-    with pytest.raises(ValueError):
         client.generate(provider="openai", prompt="x")  # model missing
+    with pytest.raises(ValueError):
+        client.generate(model="gpt-4o", prompt="x")  # provider missing
 
 
 # ---------- async ----------
@@ -593,3 +595,78 @@ def test_async_generate_provider_with_router_raises():
         asyncio.run(
             client.generate(provider="openai", model="gpt-4o", router="cheapest", prompt="x")
         )
+
+
+# ====================================================================
+# Automatic model selection (issue #48)
+# ====================================================================
+
+
+def test_best_returns_top_candidate():
+    selector = StrategySelector(Catalog())
+    assert selector.best("cheapest") == selector.select("cheapest")[0]
+
+
+def test_best_returns_none_when_no_candidates():
+    selector = StrategySelector(Catalog())
+    assert selector.best("balanced", modality="image", providers=["anthropic"]) is None
+
+
+def test_generate_auto_selects_with_default_strategy(monkeypatch):
+    calls, fake = _any_provider_factory()
+    monkeypatch.setattr("loom._loom._providers.generate", fake)
+
+    client = Loom(api_keys={"OPENAI_API_KEY": "k"})
+    chosen = StrategySelector(client.catalog).best("balanced", modality="text")
+    result = client.generate(prompt="Summarize this article.")
+
+    # The single best model is dispatched directly (no routing chain).
+    assert result["provider"] == chosen.provider
+    assert result["model"] == chosen.model
+    assert "_router" not in result
+    assert len(calls) == 1
+    assert calls[0]["provider"] == chosen.provider
+
+
+def test_generate_auto_matches_explicit_balanced_pick(monkeypatch):
+    _, fake = _any_provider_factory()
+    monkeypatch.setattr("loom._loom._providers.generate", fake)
+
+    client = Loom(api_keys={"OPENAI_API_KEY": "k"})
+    auto = client.generate(prompt="hi")
+    explicit = StrategySelector(client.catalog).best("balanced", modality="text")
+    assert (auto["provider"], auto["model"]) == (explicit.provider, explicit.model)
+
+
+def test_module_level_generate_auto(monkeypatch):
+    _, fake = _any_provider_factory()
+    monkeypatch.setattr("loom._loom._providers.generate", fake)
+    monkeypatch.setattr("loom._loom._get_default", lambda: Loom(api_keys={"OPENAI_API_KEY": "k"}))
+
+    result = loom.generate(prompt="hi")
+    assert result["kind"] == "text"
+    assert "provider" in result and "model" in result
+
+
+def test_generate_explicit_still_identical_after_auto(monkeypatch):
+    # Acceptance: existing explicit calls behave exactly as before.
+    calls, fake = _any_provider_factory()
+    monkeypatch.setattr("loom._loom._providers.generate", fake)
+
+    client = Loom(api_keys={"OPENAI_API_KEY": "k"})
+    result = client.generate(provider="openai", modality="text", model="gpt-4o-mini", prompt="hi")
+    assert result["provider"] == "openai"
+    assert result["model"] == "gpt-4o-mini"
+    assert "_router" not in result
+    assert len(calls) == 1
+
+
+def test_async_generate_auto_selects(monkeypatch):
+    async def fake_agenerate(provider, modality, model, params, prompt):
+        return {"kind": "text", "text": f"ok:{provider}:{model}"}
+
+    monkeypatch.setattr("loom._loom._providers.agenerate", fake_agenerate)
+    client = AsyncLoom(api_keys={"OPENAI_API_KEY": "k"})
+    chosen = StrategySelector(client.catalog).best("balanced", modality="text")
+    result = asyncio.run(client.generate(prompt="hi"))
+    assert (result["provider"], result["model"]) == (chosen.provider, chosen.model)

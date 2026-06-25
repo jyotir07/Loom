@@ -147,6 +147,29 @@ class StrategySelector:
 
         return [s.candidate for s in ranked]
 
+    def best(
+        self,
+        strategy: StrategyLike,
+        *,
+        modality: str = "text",
+        providers: Iterable[str] | None = None,
+        capabilities: Iterable[str] | None = None,
+    ) -> Candidate | None:
+        """Return the single top-ranked candidate for ``strategy``.
+
+        This is the programmatic form of automatic model selection — "just
+        give me the optimal model" — and returns ``None`` when no candidate
+        qualifies (e.g. an unknown modality or an over-narrow capability
+        filter). Equivalent to the first element of :meth:`select`.
+        """
+        ranked = self.select(
+            strategy,
+            modality=modality,
+            providers=providers,
+            capabilities=capabilities,
+        )
+        return ranked[0] if ranked else None
+
     # -- internals ----------------------------------------------------------
 
     def _candidate_pool(

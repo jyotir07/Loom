@@ -157,15 +157,17 @@ class Loom:
     ) -> dict[str, Any]:
         """Resolve `model` against the catalog and dispatch to the provider.
 
-        Three ways to choose where the call goes:
+        Four ways to choose where the call goes:
 
+            generate(prompt=...)                     # fully automatic
             generate(provider=..., model=..., ...)   # explicit (unchanged)
             generate(providers=[...], ...)           # ordered preference
             generate(router="balanced", ...)         # strategy-based
 
-        `providers=` / `router=` route through the intelligent router and
-        cannot be combined with `provider=` / `model=`. `modality`
-        defaults to "text".
+        With nothing but a prompt, Loom picks the optimal model itself
+        using the default `balanced` strategy for `modality` (default
+        "text"). `providers=` / `router=` route through the intelligent
+        router and cannot be combined with `provider=` / `model=`.
 
         `params` are merged on top of the catalog defaults for that
         model — caller params win on conflict.
@@ -176,6 +178,11 @@ class Loom:
             3. Otherwise   -> claim the slot, run with retry, fill cache,
                               notify waiters.
         """
+        if (
+            provider is None and model is None
+            and providers is None and router is None
+        ):
+            provider, model = self._auto_select(modality)
         if providers is not None or router is not None:
             built = self._resolve_routing(
                 provider=provider, model=model,
@@ -331,6 +338,23 @@ class Loom:
         return run_route_sync(
             self, router, prompt=prompt, params=params, use_cache=use_cache
         )
+
+    def _auto_select(self, modality: str) -> tuple[str, str]:
+        """Pick (provider, model) automatically for a bare `generate()`.
+
+        Uses the default strategy over every task-compatible model in the
+        catalog and returns the single best one. Unlike `providers=` /
+        `router=`, this dispatches the chosen model directly (no failover
+        chain) — automatic *selection*, not routing.
+        """
+        chosen = StrategySelector(self.catalog).best(
+            _DEFAULT_STRATEGY, modality=modality
+        )
+        if chosen is None:
+            raise ValueError(
+                f"automatic selection found no model for modality {modality!r}"
+            )
+        return chosen.provider, chosen.model
 
     def _resolve_routing(
         self,
@@ -522,6 +546,11 @@ class AsyncLoom(Loom):
         providers: list[str] | None = None,
         router: StrategyLike | None = None,
     ) -> dict[str, Any]:
+        if (
+            provider is None and model is None
+            and providers is None and router is None
+        ):
+            provider, model = self._auto_select(modality)
         if providers is not None or router is not None:
             built = self._resolve_routing(
                 provider=provider, model=model,
