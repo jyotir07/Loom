@@ -230,3 +230,196 @@ def test_async_route_escalates(monkeypatch):
     assert result["text"].startswith("this one")
     assert result["_router"]["used"] == "openai:text:gpt-4o"
     assert result["_router"]["passed"] is True
+
+
+# ====================================================================
+# Routing strategies + StrategySelector (issue #44)
+# ====================================================================
+
+from loom import Catalog
+from loom.routing import RoutingSignals, RoutingStrategy, StrategySelector
+
+
+# A small controlled catalog so strategy ordering is unambiguous.
+#   a-nano:     price 1,   latency fast,   quality nano      [text]
+#   a-frontier: price 100, latency slow,   quality frontier  [text, vision]
+#   b-standard: price 10,  latency medium, quality standard  [text, structured_output]
+#   b-free:     free (0),  latency fast,   quality cheap     [text]
+_SELECTOR_DATA = {
+    "alpha": {
+        "label": "Alpha",
+        "modalities": {
+            "text": [
+                {"id": "a-nano", "name": "A nano",
+                 "input_inr_per_1m": 1.0, "output_inr_per_1m": 1.0,
+                 "quality_tier": "nano", "latency_class": "fast",
+                 "capabilities": ["text"]},
+                {"id": "a-frontier", "name": "A frontier",
+                 "input_inr_per_1m": 100.0, "output_inr_per_1m": 100.0,
+                 "quality_tier": "frontier", "latency_class": "slow",
+                 "capabilities": ["text", "vision"]},
+            ],
+        },
+    },
+    "beta": {
+        "label": "Beta",
+        "modalities": {
+            "text": [
+                {"id": "b-standard", "name": "B standard",
+                 "input_inr_per_1m": 10.0, "output_inr_per_1m": 10.0,
+                 "quality_tier": "standard", "latency_class": "medium",
+                 "capabilities": ["text", "structured_output"]},
+                {"id": "b-free", "name": "B free", "free": True,
+                 "quality_tier": "cheap", "latency_class": "fast",
+                 "capabilities": ["text"]},
+            ],
+        },
+    },
+}
+
+
+class _DictSource:
+    """Mock live-signal source keyed by (provider, modality, model)."""
+
+    def __init__(self, mapping):
+        self._mapping = mapping
+
+    def get(self, provider, modality, model):
+        return self._mapping.get((provider, modality, model))
+
+
+def _selector(live=None):
+    catalog = Catalog(data=_SELECTOR_DATA)
+    signals = RoutingSignals(catalog, live) if live is not None else None
+    return StrategySelector(catalog, signals)
+
+
+def _labels(candidates):
+    return [c.label() for c in candidates]
+
+
+# ---------- enum ----------
+
+
+def test_strategy_coerce_accepts_string_and_enum():
+    assert RoutingStrategy.coerce("cheapest") is RoutingStrategy.CHEAPEST
+    assert RoutingStrategy.coerce(RoutingStrategy.FASTEST) is RoutingStrategy.FASTEST
+
+
+def test_strategy_is_string_valued():
+    assert RoutingStrategy.CHEAPEST == "cheapest"
+
+
+def test_strategy_coerce_rejects_unknown():
+    with pytest.raises(ValueError):
+        RoutingStrategy.coerce("smartest")
+
+
+# ---------- per-strategy ordering ----------
+
+
+def test_select_cheapest_orders_by_price():
+    order = _labels(_selector().select("cheapest"))
+    assert order == [
+        "beta:text:b-free",       # free -> 0
+        "alpha:text:a-nano",      # 1
+        "beta:text:b-standard",   # 10
+        "alpha:text:a-frontier",  # 100
+    ]
+
+
+def test_select_fastest_orders_by_latency_with_label_tiebreak():
+    order = _labels(_selector().select("fastest"))
+    # a-nano and b-free both "fast" -> tie broken by label (alpha < beta)
+    assert order == [
+        "alpha:text:a-nano",
+        "beta:text:b-free",
+        "beta:text:b-standard",
+        "alpha:text:a-frontier",
+    ]
+
+
+def test_select_highest_quality_orders_by_tier():
+    order = _labels(_selector().select(RoutingStrategy.HIGHEST_QUALITY))
+    assert order == [
+        "alpha:text:a-frontier",  # frontier
+        "beta:text:b-standard",   # standard
+        "beta:text:b-free",       # cheap
+        "alpha:text:a-nano",      # nano
+    ]
+
+
+def test_select_balanced_blends_signals():
+    order = _labels(_selector().select("balanced"))
+    # b-standard wins the blend (good quality, low-ish cost, medium latency);
+    # a-frontier sinks (top quality can't offset worst cost+latency).
+    assert order == [
+        "beta:text:b-standard",
+        "beta:text:b-free",
+        "alpha:text:a-nano",
+        "alpha:text:a-frontier",
+    ]
+
+
+# ---------- live signals influence ----------
+
+
+def test_fastest_uses_live_latency_over_class():
+    # Live latency makes the otherwise-"slow" frontier model the fastest.
+    live = _DictSource({("alpha", "text", "a-frontier"): {"latency_ms": 5}})
+    order = _labels(_selector(live).select("fastest"))
+    assert order[0] == "alpha:text:a-frontier"
+
+
+# ---------- filtering ----------
+
+
+def test_select_capability_filter():
+    order = _labels(_selector().select("cheapest", capabilities=["structured_output"]))
+    assert order == ["beta:text:b-standard"]
+
+
+def test_select_provider_subset():
+    order = _labels(_selector().select("cheapest", providers=["alpha"]))
+    assert order == ["alpha:text:a-nano", "alpha:text:a-frontier"]
+
+
+def test_select_unknown_modality_returns_empty():
+    assert _selector().select("cheapest", modality="image") == []
+
+
+def test_select_skips_unknown_provider():
+    # Unknown provider in the subset is skipped, not an error.
+    order = _labels(_selector().select("cheapest", providers=["alpha", "ghost"]))
+    assert order == ["alpha:text:a-nano", "alpha:text:a-frontier"]
+
+
+# ---------- default catalog sanity ----------
+
+
+def test_cheapest_is_price_monotonic_on_default_catalog():
+    from loom.routing.selector import _price_of
+
+    catalog = Catalog()
+    selector = StrategySelector(catalog)
+    candidates = selector.select("cheapest", modality="text")
+    assert len(candidates) > 5
+    prices = [
+        _price_of(
+            next(
+                e
+                for e in catalog.models(c.provider, "text")
+                if e["id"] == c.model
+            )
+        )
+        for c in candidates
+    ]
+    assert prices == sorted(prices)
+
+
+def test_highest_quality_first_is_frontier_on_default_catalog():
+    catalog = Catalog()
+    selector = StrategySelector(catalog)
+    top = selector.select("highest_quality", modality="text")[0]
+    meta = catalog.metadata(top.provider, "text", top.model)
+    assert meta["quality_tier"] == "frontier"
