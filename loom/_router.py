@@ -138,6 +138,32 @@ class Router:
         return cls(candidates=candidates, validator=validator)
 
 
+@dataclass
+class FallbackPolicy:
+    """Configurable provider failover for `generate()`.
+
+    `providers` is the ordered chain of vendors Loom will try. `retries`
+    caps how many of them are attempted (the candidate chain is truncated
+    to this length).
+
+    Fallback only switches providers on *retryable* errors (rate limits,
+    timeouts, transient 5xx); a non-retryable error (auth, unknown model,
+    bad request) raises immediately. Each attempt still runs under the
+    client's `RetryPolicy`, so in-provider retries are preserved.
+
+    Example::
+
+        FallbackPolicy(retries=3, providers=["gemini", "openai", "anthropic"])
+    """
+
+    providers: list[str] = field(default_factory=list)
+    retries: int = 3
+
+    def __post_init__(self) -> None:
+        if self.retries < 1:
+            raise ValueError("FallbackPolicy.retries must be >= 1")
+
+
 def _merge_params(
     base: dict[str, Any] | None, override: dict[str, Any] | None
 ) -> dict[str, Any] | None:
@@ -165,8 +191,15 @@ def run_route_sync(
     prompt: str,
     params: dict[str, Any] | None = None,
     use_cache: bool = True,
+    fallback_when: Callable[[BaseException], bool] | None = None,
 ) -> dict[str, Any]:
-    """Sync routing driver — used by Loom.route()."""
+    """Sync routing driver — used by Loom.route().
+
+    With `fallback_when` set (provider-fallback mode), only errors for
+    which it returns True move on to the next candidate; everything else
+    raises immediately. With it None (plain routing), any LoomError moves
+    on, preserving the original failover-on-anything behavior.
+    """
     tried: list[str] = []
     last_result: dict[str, Any] | None = None
     last_used: Candidate | None = None
@@ -185,6 +218,8 @@ def run_route_sync(
                 use_cache=use_cache,
             )
         except LoomError as exc:
+            if fallback_when is not None and not fallback_when(exc):
+                raise
             last_exc = exc
             continue
 
@@ -208,8 +243,12 @@ async def run_route_async(
     prompt: str,
     params: dict[str, Any] | None = None,
     use_cache: bool = True,
+    fallback_when: Callable[[BaseException], bool] | None = None,
 ) -> dict[str, Any]:
-    """Async routing driver — used by AsyncLoom.route()."""
+    """Async routing driver — used by AsyncLoom.route().
+
+    `fallback_when` has the same meaning as in `run_route_sync`.
+    """
     tried: list[str] = []
     last_result: dict[str, Any] | None = None
     last_used: Candidate | None = None
@@ -228,6 +267,8 @@ async def run_route_async(
                 use_cache=use_cache,
             )
         except LoomError as exc:
+            if fallback_when is not None and not fallback_when(exc):
+                raise
             last_exc = exc
             continue
 

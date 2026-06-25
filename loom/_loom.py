@@ -43,8 +43,14 @@ from loom._pricing import (
     DEFAULT_LOCAL_TO_USD,
     compute_cost,
 )
-from loom._retry import RetryPolicy, arun_with_retry, run_with_retry
-from loom._router import Router, run_route_async, run_route_sync
+from loom._retry import RetryPolicy, arun_with_retry, is_retryable, run_with_retry
+from loom._router import (
+    Candidate,
+    FallbackPolicy,
+    Router,
+    run_route_async,
+    run_route_sync,
+)
 from loom.batch import BatchHandle, BatchRequest
 from loom.catalog import Catalog
 from loom.errors import ProviderError
@@ -154,6 +160,7 @@ class Loom:
         use_cache: bool = True,
         providers: list[str] | None = None,
         router: StrategyLike | None = None,
+        fallback: FallbackPolicy | None = None,
     ) -> dict[str, Any]:
         """Resolve `model` against the catalog and dispatch to the provider.
 
@@ -178,6 +185,16 @@ class Loom:
             3. Otherwise   -> claim the slot, run with retry, fill cache,
                               notify waiters.
         """
+        if fallback is not None:
+            chain = self._resolve_fallback_chain(
+                provider=provider, model=model, providers=providers,
+                router=router, fallback=fallback, modality=modality,
+            )
+            return run_route_sync(
+                self, Router(candidates=chain),
+                prompt=prompt, params=params, use_cache=use_cache,
+                fallback_when=self._fallback_predicate(),
+            )
         if (
             provider is None and model is None
             and providers is None and router is None
@@ -355,6 +372,81 @@ class Loom:
                 f"automatic selection found no model for modality {modality!r}"
             )
         return chosen.provider, chosen.model
+
+    def _fallback_predicate(self) -> "Any":
+        """A predicate classifying an exception as fallback-worthy, using
+        the client's RetryPolicy taxonomy (or the default when retry is
+        disabled)."""
+        policy = self.retry if isinstance(self.retry, RetryPolicy) else None
+        return lambda exc: is_retryable(exc, policy)
+
+    def _resolve_fallback_chain(
+        self,
+        *,
+        provider: str | None,
+        model: str | None,
+        providers: list[str] | None,
+        router: StrategyLike | None,
+        fallback: FallbackPolicy,
+        modality: str,
+    ) -> list[Candidate]:
+        """Build the ordered candidate chain for a `fallback=` call.
+
+        Provider order comes from `fallback.providers` (preferred), else
+        `providers=`, else the whole catalog ranked by strategy. The model
+        for each provider is its best under the `router=` strategy (or the
+        default). The chain is de-duplicated and truncated to
+        `fallback.retries`.
+        """
+        if provider is not None or model is not None:
+            raise ValueError(
+                "fallback= cannot be combined with explicit provider=/model= — "
+                "put the provider chain in FallbackPolicy(providers=[...]) or "
+                "use providers=/router="
+            )
+
+        strategy = (
+            RoutingStrategy.coerce(router)
+            if router is not None
+            else _DEFAULT_STRATEGY
+        )
+        selector = StrategySelector(self.catalog)
+
+        chain_providers: list[str] | None = None
+        if fallback.providers:
+            chain_providers = list(fallback.providers)
+        elif providers is not None:
+            if not isinstance(providers, (list, tuple)) or len(providers) == 0:
+                raise ValueError(
+                    "providers= must be a non-empty list of provider names"
+                )
+            chain_providers = list(providers)
+
+        candidates: list[Candidate] = []
+        seen: set[str] = set()
+
+        def _add(cand: Candidate | None) -> None:
+            if cand is not None and cand.label() not in seen:
+                seen.add(cand.label())
+                candidates.append(cand)
+
+        if chain_providers is None:
+            # No explicit chain: rank the whole catalog by strategy.
+            for cand in selector.select(strategy, modality=modality):
+                _add(cand)
+        else:
+            for prov in chain_providers:
+                _add(
+                    selector.best(
+                        strategy, modality=modality, providers=[prov]
+                    )
+                )
+
+        if not candidates:
+            raise ValueError(
+                f"fallback produced no candidates for modality {modality!r}"
+            )
+        return candidates[: fallback.retries]
 
     def _resolve_routing(
         self,
@@ -545,7 +637,18 @@ class AsyncLoom(Loom):
         use_cache: bool = True,
         providers: list[str] | None = None,
         router: StrategyLike | None = None,
+        fallback: FallbackPolicy | None = None,
     ) -> dict[str, Any]:
+        if fallback is not None:
+            chain = self._resolve_fallback_chain(
+                provider=provider, model=model, providers=providers,
+                router=router, fallback=fallback, modality=modality,
+            )
+            return await run_route_async(
+                self, Router(candidates=chain),
+                prompt=prompt, params=params, use_cache=use_cache,
+                fallback_when=self._fallback_predicate(),
+            )
         if (
             provider is None and model is None
             and providers is None and router is None
@@ -694,11 +797,12 @@ def generate(
     params: dict[str, Any] | None = None,
     providers: list[str] | None = None,
     router: StrategyLike | None = None,
+    fallback: FallbackPolicy | None = None,
 ) -> dict[str, Any]:
     """Module-level convenience — runs on the default Loom.from_env() instance.
 
     Accepts the same explicit (`provider`+`model`) or routing
-    (`providers=` / `router=`) entry points as `Loom.generate`.
+    (`providers=` / `router=` / `fallback=`) entry points as `Loom.generate`.
     """
     return _get_default().generate(
         provider=provider,
@@ -708,6 +812,7 @@ def generate(
         params=params,
         providers=providers,
         router=router,
+        fallback=fallback,
     )
 
 
@@ -720,6 +825,7 @@ async def agenerate(
     params: dict[str, Any] | None = None,
     providers: list[str] | None = None,
     router: StrategyLike | None = None,
+    fallback: FallbackPolicy | None = None,
 ) -> dict[str, Any]:
     """Async module-level convenience — runs on the default AsyncLoom.from_env().
 
@@ -734,4 +840,5 @@ async def agenerate(
         params=params,
         providers=providers,
         router=router,
+        fallback=fallback,
     )
