@@ -1,11 +1,14 @@
-"""Cross-vendor failover — EquivalenceMap + Router.failover()."""
+"""Cross-vendor failover — EquivalenceMap + Router.failover() + FallbackPolicy."""
+
+import asyncio
 
 import pytest
 
 import loom
-from loom import EquivalenceMap, Loom, Router
+from loom import AsyncLoom, EquivalenceMap, FallbackPolicy, Loom, RetryPolicy, Router
 from loom._equivalents import DEFAULT_TIERS, default_map
-from loom.errors import ProviderError, RateLimitError
+from loom.errors import AuthError, ProviderError, RateLimitError
+from loom.routing import StrategySelector
 
 
 # ---------- EquivalenceMap ----------
@@ -164,3 +167,161 @@ def test_failover_reraises_when_all_vendors_fail(monkeypatch):
     )
     with pytest.raises(ProviderError):
         client.route(router, prompt="hi")
+
+
+# ====================================================================
+# Configurable provider fallback (issue #50)
+# ====================================================================
+
+
+_ALL_KEYS = {
+    "OPENAI_API_KEY": "k",
+    "ANTHROPIC_API_KEY": "k",
+    "GEMINI_API_KEY": "k",
+    "DEEPSEEK_API_KEY": "k",
+}
+
+
+def _by_provider_fake(behavior: dict):
+    """Fake dispatch keyed by provider: value is an exception to raise, or
+    None to succeed."""
+    calls: list[str] = []
+
+    def fake(provider, modality, model, params, prompt):
+        calls.append(f"{provider}:{model}")
+        exc = behavior.get(provider)
+        if exc is not None:
+            raise exc
+        return {"kind": "text", "text": f"answered by {provider}"}
+
+    return calls, fake
+
+
+def test_fallback_policy_rejects_non_positive_retries():
+    with pytest.raises(ValueError):
+        FallbackPolicy(retries=0, providers=["openai"])
+
+
+def test_fallback_switches_provider_on_retryable(monkeypatch):
+    calls, fake = _by_provider_fake({"gemini": RateLimitError("429")})
+    monkeypatch.setattr("loom._loom._providers.generate", fake)
+
+    client = Loom(api_keys=_ALL_KEYS, retry=None)
+    result = client.generate(
+        prompt="hi",
+        fallback=FallbackPolicy(providers=["gemini", "openai"]),
+    )
+    assert result["text"] == "answered by openai"
+    assert result["_router"]["used"].startswith("openai:")
+    # Metadata reflects the failover chain, gemini first.
+    assert calls[0].startswith("gemini:")
+    assert result["_router"]["tried"][0].startswith("gemini:")
+    assert result["_router"]["tried"][1].startswith("openai:")
+
+
+def test_fallback_raises_immediately_on_non_retryable(monkeypatch):
+    calls, fake = _by_provider_fake({"gemini": AuthError("bad key")})
+    monkeypatch.setattr("loom._loom._providers.generate", fake)
+
+    client = Loom(api_keys=_ALL_KEYS, retry=None)
+    with pytest.raises(AuthError):
+        client.generate(
+            prompt="hi",
+            fallback=FallbackPolicy(providers=["gemini", "openai"]),
+        )
+    # openai was never tried — a non-retryable error stops the chain.
+    assert len(calls) == 1
+    assert calls[0].startswith("gemini:")
+
+
+def test_fallback_reraises_when_all_retryable_fail(monkeypatch):
+    calls, fake = _by_provider_fake(
+        {"gemini": RateLimitError("429"), "openai": RateLimitError("429")}
+    )
+    monkeypatch.setattr("loom._loom._providers.generate", fake)
+
+    client = Loom(api_keys=_ALL_KEYS, retry=None)
+    with pytest.raises(RateLimitError):
+        client.generate(
+            prompt="hi",
+            fallback=FallbackPolicy(providers=["gemini", "openai"]),
+        )
+    assert len(calls) == 2
+
+
+def test_fallback_respects_retries_cap(monkeypatch):
+    calls, fake = _by_provider_fake(
+        {"gemini": RateLimitError("429"), "openai": RateLimitError("429")}
+        # anthropic would succeed, but it is beyond the retries cap.
+    )
+    monkeypatch.setattr("loom._loom._providers.generate", fake)
+
+    client = Loom(api_keys=_ALL_KEYS, retry=None)
+    with pytest.raises(RateLimitError):
+        client.generate(
+            prompt="hi",
+            fallback=FallbackPolicy(
+                providers=["gemini", "openai", "anthropic"], retries=2
+            ),
+        )
+    assert [c.split(":")[0] for c in calls] == ["gemini", "openai"]
+
+
+def test_fallback_uses_router_strategy_for_model(monkeypatch):
+    calls, fake = _by_provider_fake({})
+    monkeypatch.setattr("loom._loom._providers.generate", fake)
+
+    client = Loom(api_keys=_ALL_KEYS, retry=None)
+    result = client.generate(
+        prompt="hi",
+        router="cheapest",
+        fallback=FallbackPolicy(providers=["openai"]),
+    )
+    best = StrategySelector(client.catalog).best("cheapest", providers=["openai"])
+    upstream, _ = client.catalog.resolve("openai", "text", best.model)
+    assert calls == [f"openai:{upstream}"]
+    assert result["text"] == "answered by openai"
+
+
+def test_fallback_rejects_explicit_provider():
+    client = Loom(api_keys=_ALL_KEYS)
+    with pytest.raises(ValueError):
+        client.generate(
+            provider="openai", model="gpt-4o", prompt="hi",
+            fallback=FallbackPolicy(providers=["gemini"]),
+        )
+
+
+def test_fallback_preserves_per_provider_retry(monkeypatch):
+    calls, fake = _by_provider_fake({"gemini": RateLimitError("429")})
+    monkeypatch.setattr("loom._loom._providers.generate", fake)
+
+    client = Loom(
+        api_keys=_ALL_KEYS,
+        retry=RetryPolicy(max_attempts=2, base_delay=0.0, jitter=0.0),
+    )
+    result = client.generate(
+        prompt="hi",
+        fallback=FallbackPolicy(providers=["gemini", "openai"]),
+    )
+    # gemini is retried (max_attempts=2) before failover kicks in.
+    assert [c.split(":")[0] for c in calls] == ["gemini", "gemini", "openai"]
+    assert result["text"] == "answered by openai"
+
+
+def test_async_fallback_switches_provider(monkeypatch):
+    async def fake_agenerate(provider, modality, model, params, prompt):
+        if provider == "gemini":
+            raise RateLimitError("429")
+        return {"kind": "text", "text": f"answered by {provider}"}
+
+    monkeypatch.setattr("loom._loom._providers.agenerate", fake_agenerate)
+    client = AsyncLoom(api_keys=_ALL_KEYS, retry=None)
+    result = asyncio.run(
+        client.generate(
+            prompt="hi",
+            fallback=FallbackPolicy(providers=["gemini", "openai"]),
+        )
+    )
+    assert result["text"] == "answered by openai"
+    assert result["_router"]["used"].startswith("openai:")

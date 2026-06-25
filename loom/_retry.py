@@ -115,6 +115,18 @@ class RetryPolicy:
         return max(0.0, raw)
 
 
+_DEFAULT_POLICY = RetryPolicy()
+
+
+def is_retryable(exc: BaseException, policy: RetryPolicy | None = None) -> bool:
+    """Classify `exc` using `policy` (or a default RetryPolicy).
+
+    Shared by the provider-fallback driver so switching vendors uses the
+    exact same retryable/non-retryable taxonomy as in-provider retries.
+    """
+    return (policy or _DEFAULT_POLICY).is_retryable(exc)
+
+
 def run_with_retry(policy: RetryPolicy | None, fn: Callable[[], T]) -> T:
     """Invoke `fn()` under `policy`. With policy=None, no retry at all."""
     if policy is None or policy.max_attempts <= 1:

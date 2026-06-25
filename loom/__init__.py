@@ -30,7 +30,7 @@ from loom._context_cache import ContextCacheHandle
 from loom._equivalents import EquivalenceMap
 from loom._loom import AsyncLoom, Loom, agenerate, generate
 from loom._retry import RetryPolicy
-from loom._router import Candidate, Router
+from loom._router import Candidate, FallbackPolicy, Router
 from loom.batch import BatchHandle, BatchRequest
 from loom.catalog import Catalog
 from loom.errors import (
@@ -70,6 +70,7 @@ __all__ = [
     "ContextCacheHandle",
     "Router",
     "Candidate",
+    "FallbackPolicy",
     "EquivalenceMap",
     "LoomError",
     "ProviderError",
