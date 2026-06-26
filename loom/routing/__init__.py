@@ -12,6 +12,7 @@ Both are standalone — wiring them into `generate()` happens in a later
 phase.
 """
 
+from loom.routing.health import CircuitState, HealthRegistry, ProviderHealth
 from loom.routing.selector import StrategySelector
 from loom.routing.signals import (
     LiveSignalSource,
@@ -27,4 +28,7 @@ __all__ = [
     "RoutingStrategy",
     "StrategyLike",
     "StrategySelector",
+    "HealthRegistry",
+    "ProviderHealth",
+    "CircuitState",
 ]
