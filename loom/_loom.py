@@ -53,8 +53,13 @@ from loom._router import (
 )
 from loom.batch import BatchHandle, BatchRequest
 from loom.catalog import Catalog
-from loom.errors import ProviderError
-from loom.routing import RoutingStrategy, StrategyLike, StrategySelector
+from loom.errors import ProviderError, RateLimitError
+from loom.routing import (
+    HealthRegistry,
+    RoutingStrategy,
+    StrategyLike,
+    StrategySelector,
+)
 
 _UNSET: Any = object()
 
@@ -93,6 +98,7 @@ class Loom:
         cache: CacheBackend | None = None,
         dedup: bool = True,
         vault: Any | None = None,
+        health: HealthRegistry | None = _UNSET,
     ) -> None:
         self.catalog = catalog or Catalog()
         self.api_keys: dict[str, str] = dict(api_keys or {})
@@ -104,6 +110,12 @@ class Loom:
         self._inflight: InFlight | None = InFlight() if dedup else None
         # KeyVault — third source for require_env after api_keys + env.
         self.vault = vault
+        # health=_UNSET (default) -> track in a fresh registry;
+        # health=None -> tracking disabled. Routing doesn't consume this
+        # yet (it just accumulates per-provider history).
+        self.health: HealthRegistry | None = (
+            HealthRegistry() if health is _UNSET else health
+        )
 
     @classmethod
     def from_env(
@@ -118,6 +130,7 @@ class Loom:
         cache: CacheBackend | None = None,
         dedup: bool = True,
         vault: Any | None = None,
+        health: HealthRegistry | None = _UNSET,
     ) -> "Loom":
         """Build a Loom that reads vendor keys from environment variables.
 
@@ -147,6 +160,7 @@ class Loom:
             cache=cache,
             dedup=dedup,
             vault=vault,
+            health=health,
         )
 
     def generate(
@@ -286,6 +300,7 @@ class Loom:
                 latency_ms=(time.perf_counter() - started) * 1000.0,
                 result=None, error=exc,
             )
+            self._record_health_failure(provider, exc)
             if self._inflight is not None:
                 self._inflight.finish_sync(key, error=exc)
             raise
@@ -295,6 +310,7 @@ class Loom:
             provider=provider, modality=modality, model=model,
             upstream_model=upstream_model,
         )
+        self._record_health_success(provider, started)
         if self.cache is not None and use_cache:
             self.cache.set(key, enriched)
         log_call(
@@ -337,6 +353,22 @@ class Loom:
         if cost is not None:
             result["cost"] = cost
         return result
+
+    # ---------------- health ----------------
+
+    def _record_health_success(self, provider: str, started: float) -> None:
+        if self.health is not None:
+            self.health.record_success(
+                provider, latency_ms=(time.perf_counter() - started) * 1000.0
+            )
+
+    def _record_health_failure(self, provider: str, exc: BaseException) -> None:
+        if self.health is not None:
+            self.health.record_failure(
+                provider,
+                rate_limited=isinstance(exc, RateLimitError),
+                error=str(exc),
+            )
 
     # ---------------- routing ----------------
 
@@ -736,6 +768,7 @@ class AsyncLoom(Loom):
                 latency_ms=(time.perf_counter() - started) * 1000.0,
                 result=None, error=exc,
             )
+            self._record_health_failure(provider, exc)
             if self._inflight is not None:
                 self._inflight.finish_async(key, error=exc)
             raise
@@ -745,6 +778,7 @@ class AsyncLoom(Loom):
             provider=provider, modality=modality, model=model,
             upstream_model=upstream_model,
         )
+        self._record_health_success(provider, started)
         if self.cache is not None and use_cache:
             self.cache.set(key, enriched)
         log_call(
