@@ -2,9 +2,15 @@
 
 import pytest
 
-from loom import Loom
+from loom import FallbackPolicy, Loom
+from loom.catalog import Catalog
 from loom.errors import AuthError, ProviderError, RateLimitError
-from loom.routing import CircuitState, HealthRegistry, ProviderHealth
+from loom.routing import (
+    CircuitState,
+    HealthRegistry,
+    ProviderHealth,
+    StrategySelector,
+)
 
 
 class _Clock:
@@ -215,3 +221,167 @@ def test_cache_hit_does_not_record_health(monkeypatch):
     client.generate(provider="openai", model="gpt-4o-mini", prompt="hi")  # cache hit
     # Only the real upstream call recorded a success, not the cache hit.
     assert client.health.status("openai").successes == 1
+
+
+# ---------- health-aware routing (issue #54) ----------
+
+# Two interchangeable providers, one model each, identical price/quality/
+# latency — so without health the order is purely label-sorted
+# (alpha < beta). That makes any health-driven reordering observable.
+_ROUTING_DATA = {
+    "alpha": {
+        "label": "Alpha",
+        "modalities": {
+            "text": [
+                {"id": "a1", "name": "A1",
+                 "input_inr_per_1m": 1.0, "output_inr_per_1m": 1.0,
+                 "quality_tier": "standard", "latency_class": "fast",
+                 "capabilities": ["text"]},
+            ],
+        },
+    },
+    "beta": {
+        "label": "Beta",
+        "modalities": {
+            "text": [
+                {"id": "b1", "name": "B1",
+                 "input_inr_per_1m": 1.0, "output_inr_per_1m": 1.0,
+                 "quality_tier": "standard", "latency_class": "fast",
+                 "capabilities": ["text"]},
+            ],
+        },
+    },
+}
+
+
+def _routing_catalog():
+    return Catalog(data=_ROUTING_DATA)
+
+
+def _labels(candidates):
+    return [c.label() for c in candidates]
+
+
+# -- selector-level --
+
+
+def test_selector_excludes_open_circuit():
+    health = HealthRegistry(failure_threshold=1)
+    health.record_failure("alpha")  # alpha -> open
+    sel = StrategySelector(_routing_catalog(), health=health)
+    assert _labels(sel.select("cheapest")) == ["beta:text:b1"]
+    assert sel.best("cheapest").provider == "beta"
+
+
+def test_selector_deprioritizes_half_open():
+    clock = _Clock()
+    health = HealthRegistry(
+        failure_threshold=1, recovery_timeout=10.0, time_fn=clock
+    )
+    health.record_failure("alpha")  # alpha -> open
+    clock.advance(11.0)  # alpha -> half_open (a trial is allowed)
+    sel = StrategySelector(_routing_catalog(), health=health)
+    # Healthy beta ranks ahead of recovering alpha despite alpha's label
+    # sorting first.
+    assert _labels(sel.select("cheapest")) == ["beta:text:b1", "alpha:text:a1"]
+
+
+def test_selector_all_open_keeps_full_pool():
+    health = HealthRegistry(failure_threshold=1)
+    health.record_failure("alpha")
+    health.record_failure("beta")  # everyone is open
+    sel = StrategySelector(_routing_catalog(), health=health)
+    # Rather than strand the caller, fall back to the unfiltered order.
+    assert _labels(sel.select("cheapest")) == ["alpha:text:a1", "beta:text:b1"]
+
+
+def test_selector_without_health_is_unchanged():
+    sel = StrategySelector(_routing_catalog())  # no health
+    assert _labels(sel.select("cheapest")) == ["alpha:text:a1", "beta:text:b1"]
+
+
+# -- generate() integration --
+
+
+def _routing_client(health):
+    return Loom(catalog=_routing_catalog(), api_keys={}, health=health)
+
+
+def test_router_strategy_skips_open_provider(monkeypatch):
+    calls = []
+
+    def fake(provider, modality, model, params, prompt):
+        calls.append(provider)
+        return {"kind": "text", "text": f"ok:{provider}"}
+
+    monkeypatch.setattr("loom._loom._providers.generate", fake)
+    health = HealthRegistry(failure_threshold=1)
+    health.record_failure("alpha")  # alpha -> open
+    client = _routing_client(health)
+    result = client.generate(router="cheapest", prompt="hi")
+    assert result["provider"] == "beta"
+    assert calls == ["beta"]  # alpha never attempted
+
+
+def test_providers_list_skips_open_provider(monkeypatch):
+    calls = []
+
+    def fake(provider, modality, model, params, prompt):
+        calls.append(provider)
+        return {"kind": "text", "text": f"ok:{provider}"}
+
+    monkeypatch.setattr("loom._loom._providers.generate", fake)
+    health = HealthRegistry(failure_threshold=1)
+    health.record_failure("alpha")  # alpha -> open
+    client = _routing_client(health)
+    # Caller prefers alpha first, but it's degraded -> routed to beta.
+    result = client.generate(providers=["alpha", "beta"], prompt="hi")
+    assert result["provider"] == "beta"
+    assert calls == ["beta"]
+
+
+def test_providers_list_preserves_order_when_healthy(monkeypatch):
+    calls = []
+
+    def fake(provider, modality, model, params, prompt):
+        calls.append(provider)
+        return {"kind": "text", "text": f"ok:{provider}"}
+
+    monkeypatch.setattr("loom._loom._providers.generate", fake)
+    client = _routing_client(HealthRegistry())  # no failures recorded
+    result = client.generate(providers=["beta", "alpha"], prompt="hi")
+    # All healthy -> caller's order wins; beta is attempted first.
+    assert result["provider"] == "beta"
+
+
+def test_fallback_chain_skips_open_provider(monkeypatch):
+    calls = []
+
+    def fake(provider, modality, model, params, prompt):
+        calls.append(provider)
+        return {"kind": "text", "text": f"ok:{provider}"}
+
+    monkeypatch.setattr("loom._loom._providers.generate", fake)
+    health = HealthRegistry(failure_threshold=1)
+    health.record_failure("alpha")  # alpha -> open
+    client = _routing_client(health)
+    result = client.generate(
+        prompt="hi",
+        fallback=FallbackPolicy(providers=["alpha", "beta"], retries=3),
+    )
+    assert result["provider"] == "beta"
+    assert calls == ["beta"]
+
+
+def test_routing_unaffected_when_health_disabled(monkeypatch):
+    calls = []
+
+    def fake(provider, modality, model, params, prompt):
+        calls.append(provider)
+        return {"kind": "text", "text": f"ok:{provider}"}
+
+    monkeypatch.setattr("loom._loom._providers.generate", fake)
+    client = Loom(catalog=_routing_catalog(), api_keys={}, health=None)
+    # No health data at all -> plain strategy order (alpha first by label).
+    result = client.generate(router="cheapest", prompt="hi")
+    assert result["provider"] == "alpha"

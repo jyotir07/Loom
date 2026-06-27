@@ -55,6 +55,7 @@ from loom.batch import BatchHandle, BatchRequest
 from loom.catalog import Catalog
 from loom.errors import ProviderError, RateLimitError
 from loom.routing import (
+    CircuitState,
     HealthRegistry,
     RoutingStrategy,
     StrategyLike,
@@ -111,8 +112,9 @@ class Loom:
         # KeyVault — third source for require_env after api_keys + env.
         self.vault = vault
         # health=_UNSET (default) -> track in a fresh registry;
-        # health=None -> tracking disabled. Routing doesn't consume this
-        # yet (it just accumulates per-provider history).
+        # health=None -> tracking disabled. When present, routing consumes
+        # it: open-circuit providers are skipped and recovering ones are
+        # deprioritized (see _health_reorder / StrategySelector).
         self.health: HealthRegistry | None = (
             HealthRegistry() if health is _UNSET else health
         )
@@ -370,6 +372,36 @@ class Loom:
                 error=str(exc),
             )
 
+    def _health_reorder(self, candidates: list[Candidate]) -> list[Candidate]:
+        """Re-order a candidate chain by current provider health.
+
+        Healthy (closed-circuit) providers come first, then recovering
+        (half-open) ones; both groups keep their incoming order so an
+        explicit `providers=` chain still honours the caller's preference
+        within a health tier. Open-circuit providers are dropped — unless
+        *every* candidate is open, in which case the chain is returned
+        untouched rather than leaving the caller with nothing to try.
+
+        A no-op when health tracking is disabled. Selector-built chains are
+        already health-filtered; this also covers the per-provider paths
+        (`providers=`, explicit fallback chains) the selector can't filter
+        on its own.
+        """
+        if self.health is None or not candidates:
+            return candidates
+        healthy: list[Candidate] = []
+        recovering: list[Candidate] = []
+        for cand in candidates:
+            state = self.health.state(cand.provider)
+            if state is CircuitState.OPEN:
+                continue
+            if state is CircuitState.HALF_OPEN:
+                recovering.append(cand)
+            else:
+                healthy.append(cand)
+        ordered = healthy + recovering
+        return ordered if ordered else candidates
+
     # ---------------- routing ----------------
 
     def route(
@@ -396,7 +428,7 @@ class Loom:
         `router=`, this dispatches the chosen model directly (no failover
         chain) — automatic *selection*, not routing.
         """
-        chosen = StrategySelector(self.catalog).best(
+        chosen = StrategySelector(self.catalog, health=self.health).best(
             _DEFAULT_STRATEGY, modality=modality
         )
         if chosen is None:
@@ -442,7 +474,7 @@ class Loom:
             if router is not None
             else _DEFAULT_STRATEGY
         )
-        selector = StrategySelector(self.catalog)
+        selector = StrategySelector(self.catalog, health=self.health)
 
         chain_providers: list[str] | None = None
         if fallback.providers:
@@ -478,7 +510,7 @@ class Loom:
             raise ValueError(
                 f"fallback produced no candidates for modality {modality!r}"
             )
-        return candidates[: fallback.retries]
+        return self._health_reorder(candidates)[: fallback.retries]
 
     def _resolve_routing(
         self,
@@ -511,7 +543,7 @@ class Loom:
             if len(providers) == 0:
                 raise ValueError("providers= must contain at least one provider")
 
-        selector = StrategySelector(self.catalog)
+        selector = StrategySelector(self.catalog, health=self.health)
         provider_subset = list(providers) if providers is not None else None
 
         if router is not None:
@@ -527,7 +559,7 @@ class Loom:
                     f"router={router!r} produced no candidates for modality "
                     f"{modality!r}{where}"
                 )
-            return Router(candidates=candidates)
+            return Router(candidates=self._health_reorder(candidates))
 
         # providers= only: caller's order, best model per provider.
         candidates = []
@@ -542,7 +574,7 @@ class Loom:
                 f"none of the providers {provider_subset} offer modality "
                 f"{modality!r}"
             )
-        return Router(candidates=candidates)
+        return Router(candidates=self._health_reorder(candidates))
 
     # ---------------- batch ----------------
 

@@ -18,8 +18,10 @@ slowest, unknown quality = lowest), so a sparsely-seeded catalog still
 produces a stable, sensible order. Ties break on the candidate label so
 ordering is fully deterministic.
 
-Per the issue scope, this selector is standalone — it does **not** touch
-``generate()``. Wiring it into the call path comes in a later phase.
+An optional :class:`HealthRegistry` makes selection health-aware:
+open-circuit providers are excluded and recovering (half-open) ones are
+deprioritized, so routing steers away from providers that are currently
+struggling. See :meth:`StrategySelector._apply_health`.
 """
 
 from __future__ import annotations
@@ -30,6 +32,7 @@ from typing import Any, Iterable, Sequence
 from loom._router import Candidate
 from loom.catalog import Catalog
 from loom.errors import ModelNotFoundError
+from loom.routing.health import CircuitState, HealthRegistry
 from loom.routing.signals import RoutingSignals
 from loom.routing.strategy import RoutingStrategy, StrategyLike
 
@@ -70,6 +73,10 @@ class _Scored:
     price: float
     latency: float
     quality: int
+    # 0 = healthy (preferred), 1 = recovering/half-open (deprioritized).
+    # Providers with an open circuit are filtered out before ranking, so
+    # they never carry a health rank here.
+    health_rank: int = 0
 
 
 def _price_of(entry: dict[str, Any]) -> float:
@@ -105,13 +112,26 @@ def _quality_of(signals: dict[str, Any]) -> int:
 
 
 class StrategySelector:
-    """Ranks catalog candidates for a given RoutingStrategy."""
+    """Ranks catalog candidates for a given RoutingStrategy.
+
+    When a :class:`HealthRegistry` is supplied, selection becomes
+    health-aware: providers whose circuit is *open* are excluded, and
+    *half-open* (recovering) providers are deprioritized below healthy
+    ones while keeping the strategy's order within each health group. If
+    every candidate's provider is open, health is ignored rather than
+    stranding the caller — a degraded provider beats no provider at all.
+    """
 
     def __init__(
-        self, catalog: Catalog, signals: RoutingSignals | None = None
+        self,
+        catalog: Catalog,
+        signals: RoutingSignals | None = None,
+        *,
+        health: HealthRegistry | None = None,
     ) -> None:
         self._catalog = catalog
         self._signals = signals if signals is not None else RoutingSignals(catalog)
+        self._health = health
 
     def select(
         self,
@@ -133,14 +153,20 @@ class StrategySelector:
         pool = self._candidate_pool(modality, providers, capabilities)
         if not pool:
             return []
+        pool = self._apply_health(pool)
 
         if strategy is RoutingStrategy.CHEAPEST:
-            ranked = sorted(pool, key=lambda s: (s.price, s.candidate.label()))
+            ranked = sorted(
+                pool, key=lambda s: (s.health_rank, s.price, s.candidate.label())
+            )
         elif strategy is RoutingStrategy.FASTEST:
-            ranked = sorted(pool, key=lambda s: (s.latency, s.candidate.label()))
+            ranked = sorted(
+                pool, key=lambda s: (s.health_rank, s.latency, s.candidate.label())
+            )
         elif strategy is RoutingStrategy.HIGHEST_QUALITY:
             ranked = sorted(
-                pool, key=lambda s: (-s.quality, s.price, s.candidate.label())
+                pool,
+                key=lambda s: (s.health_rank, -s.quality, s.price, s.candidate.label()),
             )
         else:  # BALANCED
             ranked = self._rank_balanced(pool)
@@ -210,6 +236,32 @@ class StrategySelector:
         except ModelNotFoundError:
             return []
 
+    def _apply_health(self, pool: list[_Scored]) -> list[_Scored]:
+        """Filter open-circuit providers and tag the rest with a health rank.
+
+        Returns the subset of candidates whose provider is currently
+        available (circuit closed or half-open), with ``health_rank`` set
+        so healthy providers rank ahead of recovering ones. When *every*
+        provider is open, the full pool is returned unchanged — failing
+        over to a degraded provider is better than returning nothing.
+        """
+        if self._health is None:
+            return pool
+
+        states: dict[str, CircuitState] = {}
+        available: list[_Scored] = []
+        for s in pool:
+            provider = s.candidate.provider
+            state = states.get(provider)
+            if state is None:
+                state = self._health.state(provider)
+                states[provider] = state
+            s.health_rank = 1 if state is CircuitState.HALF_OPEN else 0
+            if state is not CircuitState.OPEN:
+                available.append(s)
+
+        return available if available else pool
+
     def _rank_balanced(self, pool: list[_Scored]) -> list[_Scored]:
         prices = [s.price for s in pool if s.price != _INF]
         latencies = [s.latency for s in pool if s.latency != _INF]
@@ -237,7 +289,7 @@ class StrategySelector:
             )
             scored.append((score, s))
 
-        scored.sort(key=lambda t: (-t[0], t[1].candidate.label()))
+        scored.sort(key=lambda t: (t[1].health_rank, -t[0], t[1].candidate.label()))
         return [s for _, s in scored]
 
 
