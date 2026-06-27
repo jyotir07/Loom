@@ -57,6 +57,7 @@ from loom.errors import ProviderError, RateLimitError
 from loom.routing import (
     CircuitState,
     HealthRegistry,
+    LoadBalancer,
     RoutingStrategy,
     StrategyLike,
     StrategySelector,
@@ -100,6 +101,7 @@ class Loom:
         dedup: bool = True,
         vault: Any | None = None,
         health: HealthRegistry | None = _UNSET,
+        balancer: LoadBalancer | None = None,
     ) -> None:
         self.catalog = catalog or Catalog()
         self.api_keys: dict[str, str] = dict(api_keys or {})
@@ -118,6 +120,10 @@ class Loom:
         self.health: HealthRegistry | None = (
             HealthRegistry() if health is _UNSET else health
         )
+        # Optional load balancer. When set, the fully-automatic path
+        # (generate(prompt=...)) spreads traffic across its provider pool
+        # instead of always landing on the single best model.
+        self.balancer = balancer
 
     @classmethod
     def from_env(
@@ -133,6 +139,7 @@ class Loom:
         dedup: bool = True,
         vault: Any | None = None,
         health: HealthRegistry | None = _UNSET,
+        balancer: LoadBalancer | None = None,
     ) -> "Loom":
         """Build a Loom that reads vendor keys from environment variables.
 
@@ -163,6 +170,7 @@ class Loom:
             dedup=dedup,
             vault=vault,
             health=health,
+            balancer=balancer,
         )
 
     def generate(
@@ -423,14 +431,26 @@ class Loom:
     def _auto_select(self, modality: str) -> tuple[str, str]:
         """Pick (provider, model) automatically for a bare `generate()`.
 
-        Uses the default strategy over every task-compatible model in the
-        catalog and returns the single best one. Unlike `providers=` /
-        `router=`, this dispatches the chosen model directly (no failover
+        With a `balancer` configured, the balancer chooses the provider
+        (spreading traffic across its pool) and the default strategy picks
+        that provider's best model. Otherwise the default strategy ranks
+        every task-compatible model in the catalog and the single best one
+        is returned. Either way this dispatches directly (no failover
         chain) — automatic *selection*, not routing.
         """
-        chosen = StrategySelector(self.catalog, health=self.health).best(
-            _DEFAULT_STRATEGY, modality=modality
-        )
+        selector = StrategySelector(self.catalog, health=self.health)
+        if self.balancer is not None:
+            provider = self.balancer.pick(self.health)
+            if provider is not None:
+                chosen = selector.best(
+                    _DEFAULT_STRATEGY, modality=modality, providers=[provider]
+                )
+                if chosen is not None:
+                    return chosen.provider, chosen.model
+            # Balancer pick unusable (no provider, or it can't serve this
+            # modality) — fall back to the global best below.
+
+        chosen = selector.best(_DEFAULT_STRATEGY, modality=modality)
         if chosen is None:
             raise ValueError(
                 f"automatic selection found no model for modality {modality!r}"

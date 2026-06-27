@@ -34,7 +34,7 @@ import threading
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Callable
+from typing import Callable, Iterable
 
 
 class CircuitState(str, Enum):
@@ -192,6 +192,11 @@ class HealthRegistry:
             for h in self._providers.values():
                 self._resolve(h)
             return {p: dataclasses.replace(h) for p, h in self._providers.items()}
+
+    def healthy(self, providers: Iterable[str]) -> list[str]:
+        """Return the subset of `providers` whose circuit is not open,
+        preserving the input order. Unknown providers count as healthy."""
+        return [p for p in providers if self.is_available(p)]
 
     def reset(self, provider: str | None = None) -> None:
         """Clear health for one provider, or all when `provider` is None."""

@@ -12,6 +12,7 @@ Both are standalone — wiring them into `generate()` happens in a later
 phase.
 """
 
+from loom.routing.balancer import BalancingLike, BalancingStrategy, LoadBalancer
 from loom.routing.health import CircuitState, HealthRegistry, ProviderHealth
 from loom.routing.selector import StrategySelector
 from loom.routing.signals import (
@@ -31,4 +32,7 @@ __all__ = [
     "HealthRegistry",
     "ProviderHealth",
     "CircuitState",
+    "LoadBalancer",
+    "BalancingStrategy",
+    "BalancingLike",
 ]
