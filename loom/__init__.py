@@ -47,6 +47,7 @@ from loom.errors import (
     ModelNotFoundError,
     ProviderError,
     RateLimitError,
+    StructuredOutputError,
 )
 from loom.types import (
     Cost,
@@ -93,6 +94,7 @@ __all__ = [
     "AuthError",
     "RateLimitError",
     "ModelNotFoundError",
+    "StructuredOutputError",
     "TextResponse",
     "ImageResponse",
     "ImagePayload",

@@ -24,3 +24,11 @@ class RateLimitError(ProviderError):
 
 class ModelNotFoundError(LoomError):
     """The requested (provider, modality, model) is not in the catalog."""
+
+
+class StructuredOutputError(LoomError):
+    """A `schema=` request could not be satisfied.
+
+    Raised when Pydantic is missing, `schema=` is not a supported schema
+    type, or the model's reply can't be parsed/validated against it.
+    """

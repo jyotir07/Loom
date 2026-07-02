@@ -35,6 +35,7 @@ from loom import context_cache_providers as _ctx_cache_providers
 from loom import providers as _providers
 from loom._cache import CacheBackend
 from loom._call_key import call_key
+from loom import _structured
 from loom._compare import (
     CompareReport,
     run_compare_async,
@@ -179,6 +180,49 @@ class Loom:
         )
 
     def generate(
+        self,
+        *,
+        provider: str | None = None,
+        modality: str = "text",
+        model: str | None = None,
+        prompt: str,
+        params: dict[str, Any] | None = None,
+        use_cache: bool = True,
+        providers: list[str] | None = None,
+        router: StrategyLike | None = None,
+        fallback: FallbackPolicy | None = None,
+        schema: Any | None = None,
+    ) -> Any:
+        """Generate a response, optionally as a validated `schema` object.
+
+        Without `schema=`, returns the usual response dict (see
+        `_run_generate` for the full routing/cache/dedup flow). With
+        `schema=` (a Pydantic model), Loom asks the model for JSON matching
+        that schema, then parses and validates the reply and returns a
+        schema instance instead of the dict — a provider-agnostic
+        structured output. Pydantic is an optional dependency required only
+        when `schema=` is used. `schema=` applies to `modality="text"`.
+        """
+        if schema is None:
+            return self._run_generate(
+                provider=provider, modality=modality, model=model,
+                prompt=prompt, params=params, use_cache=use_cache,
+                providers=providers, router=router, fallback=fallback,
+            )
+        if modality != "text":
+            raise _structured.StructuredOutputError(
+                "schema= is only supported for modality 'text'"
+            )
+        _structured.ensure_available(schema)
+        result = self._run_generate(
+            provider=provider, modality=modality, model=model,
+            prompt=_structured.augment_prompt(prompt, schema),
+            params=params, use_cache=use_cache,
+            providers=providers, router=router, fallback=fallback,
+        )
+        return _structured.parse(schema, result.get("text"))
+
+    def _run_generate(
         self,
         *,
         provider: str | None = None,
@@ -816,6 +860,42 @@ class AsyncLoom(Loom):
         providers: list[str] | None = None,
         router: StrategyLike | None = None,
         fallback: FallbackPolicy | None = None,
+        schema: Any | None = None,
+    ) -> Any:
+        """Async sibling of :meth:`Loom.generate`. With `schema=`, returns a
+        validated Pydantic instance instead of the response dict; otherwise
+        returns the response dict. See :meth:`Loom.generate`."""
+        if schema is None:
+            return await self._run_generate(
+                provider=provider, modality=modality, model=model,
+                prompt=prompt, params=params, use_cache=use_cache,
+                providers=providers, router=router, fallback=fallback,
+            )
+        if modality != "text":
+            raise _structured.StructuredOutputError(
+                "schema= is only supported for modality 'text'"
+            )
+        _structured.ensure_available(schema)
+        result = await self._run_generate(
+            provider=provider, modality=modality, model=model,
+            prompt=_structured.augment_prompt(prompt, schema),
+            params=params, use_cache=use_cache,
+            providers=providers, router=router, fallback=fallback,
+        )
+        return _structured.parse(schema, result.get("text"))
+
+    async def _run_generate(  # type: ignore[override]
+        self,
+        *,
+        provider: str | None = None,
+        modality: str = "text",
+        model: str | None = None,
+        prompt: str,
+        params: dict[str, Any] | None = None,
+        use_cache: bool = True,
+        providers: list[str] | None = None,
+        router: StrategyLike | None = None,
+        fallback: FallbackPolicy | None = None,
     ) -> dict[str, Any]:
         if fallback is not None:
             chain = self._resolve_fallback_chain(
@@ -998,11 +1078,13 @@ def generate(
     providers: list[str] | None = None,
     router: StrategyLike | None = None,
     fallback: FallbackPolicy | None = None,
-) -> dict[str, Any]:
+    schema: Any | None = None,
+) -> Any:
     """Module-level convenience — runs on the default Loom.from_env() instance.
 
     Accepts the same explicit (`provider`+`model`) or routing
-    (`providers=` / `router=` / `fallback=`) entry points as `Loom.generate`.
+    (`providers=` / `router=` / `fallback=`) entry points as `Loom.generate`,
+    plus `schema=` for a validated structured-output object.
     """
     return _get_default().generate(
         provider=provider,
@@ -1013,6 +1095,7 @@ def generate(
         providers=providers,
         router=router,
         fallback=fallback,
+        schema=schema,
     )
 
 
@@ -1026,11 +1109,12 @@ async def agenerate(
     providers: list[str] | None = None,
     router: StrategyLike | None = None,
     fallback: FallbackPolicy | None = None,
-) -> dict[str, Any]:
+    schema: Any | None = None,
+) -> Any:
     """Async module-level convenience — runs on the default AsyncLoom.from_env().
 
     Accepts the same explicit or routing entry points as
-    `AsyncLoom.generate`.
+    `AsyncLoom.generate`, plus `schema=` for a validated structured object.
     """
     return await _get_async_default().generate(
         provider=provider,
@@ -1041,4 +1125,5 @@ async def agenerate(
         providers=providers,
         router=router,
         fallback=fallback,
+        schema=schema,
     )

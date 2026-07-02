@@ -50,6 +50,24 @@ _LAZY: dict[str, str] = {
 
 _LOADED: dict[str, ModuleType] = {}
 
+# Providers with a *native* structured-output mode (guaranteed-schema JSON).
+# The shared layer (loom._structured) already produces validated objects on
+# every provider via JSON parsing; this set marks where a native, provider-
+# specific path can be wired later without changing the public contract.
+_STRUCTURED_OUTPUT: frozenset[str] = frozenset(
+    {"openai", "anthropic", "gemini"}
+)
+
+
+def supports_structured_output(provider: str) -> bool:
+    """Whether `provider` has a native structured-output capability.
+
+    Informational today: `generate(schema=...)` works on any provider via
+    the provider-agnostic JSON strategy. This flag gates the native
+    per-provider implementations added in later work.
+    """
+    return provider in _STRUCTURED_OUTPUT
+
 
 def _module_for(provider: str) -> ModuleType:
     if provider in _LOADED:
@@ -102,4 +120,9 @@ async def agenerate(
     )
 
 
-__all__ = ["available", "generate", "agenerate"]
+__all__ = [
+    "available",
+    "generate",
+    "agenerate",
+    "supports_structured_output",
+]
