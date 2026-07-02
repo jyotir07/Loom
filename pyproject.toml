@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "loom-router"
 version = "2.0.0"
 description = "One contract for every AI vendor. Native SDKs preserved; keys, cost, retries, and routing centralised."
-readme = "readme.md"
+readme = "README.md"
 requires-python = ">=3.10"
 authors = [{ name = "Jyotiraditya Singh" }]
 license = { file = "LICENSE" }

@@ -324,12 +324,22 @@ For **the org**:
 
 ## Status
 
-Loom is built on top of the existing Models Catalog project, which already has the provider abstraction, native SDK adapters, unified catalog, and `generate(...)` contract working in production. The remaining work is packaging it as an installable library, extracting the engine from the Flask app, adding the optimization layer, and writing documentation.
+**Loom 2.0.0 is released and stable.** Everything described above is shipped and
+installable today with `pip install loom-router`:
 
-Estimated timeline:
+- **Packaged and published** — proper Python package on PyPI, 14+ vendors wired up,
+  the single `generate(...)` contract live in sync and async.
+- **Optimization layer** — response caching, vendor-native prompt caching, batch
+  APIs, cross-vendor failover, and request dedup, all toggleable per call.
+- **Intelligent routing (new in 2.0)** — intent-based provider/model selection,
+  named strategies, health-aware fallback, load balancing, provider benchmarking,
+  provider-agnostic structured outputs, and zero-config analytics.
+- **Observability** — per-call cost logging and a read-only dashboard blueprint.
 
-- **Stage 1 (1–2 weeks):** Extract into a proper Python package. Flask app keeps working, now importing from the new library.
-- **Stage 2 (3–4 weeks):** Programmatic configuration, optional Postgres, typed responses, async support. Internal release.
-- **Stage 3 (ongoing):** Optimization layer, observability dashboard, semver stability, public docs.
+The public API documented in [`docs/stability.md`](docs/stability.md) is bound by
+semantic versioning: no breaking changes within the 2.x line. Every 2.0 addition is
+backward-compatible with 1.x — see [`CHANGELOG.md`](CHANGELOG.md) for the full list
+and [`docs/migration_guide.md`](docs/migration_guide.md) for the upgrade path.
 
-Each stage delivers value independently. The org can stop at Stage 2 and have a useful internal library, or continue to Stage 3 for the full cost-optimization story.
+Development continues on the [GitHub repository](https://github.com/jyotir07/Loom);
+issues and contributions are welcome.
