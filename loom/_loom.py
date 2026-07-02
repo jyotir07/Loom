@@ -35,6 +35,11 @@ from loom import context_cache_providers as _ctx_cache_providers
 from loom import providers as _providers
 from loom._cache import CacheBackend
 from loom._call_key import call_key
+from loom._compare import (
+    CompareReport,
+    run_compare_async,
+    run_compare_sync,
+)
 from loom._context_cache import ContextCacheHandle
 from loom._dedup import InFlight
 from loom._logging import log_call
@@ -596,6 +601,95 @@ class Loom:
             )
         return Router(candidates=self._health_reorder(candidates))
 
+    # ---------------- benchmarking ----------------
+
+    def compare(
+        self,
+        *,
+        prompt: str,
+        providers: list[Any],
+        modality: str = "text",
+        params: dict[str, Any] | None = None,
+        strategy: StrategyLike | None = None,
+        use_cache: bool = False,
+    ) -> CompareReport:
+        """Run `prompt` across `providers` concurrently and tabulate results.
+
+        Each entry in `providers` may be a provider name (``"openai"`` —
+        its best model for `modality` under `strategy` is chosen), a
+        ``(provider, model)`` pair, or a :class:`Candidate` for full
+        control. Returns a :class:`CompareReport`: one
+        :class:`CompareResult` row per entry (latency, tokens, cost,
+        output) plus a summary naming the cheapest / fastest / highest-
+        quality result.
+
+        Benchmarking reuses `generate()`, so retry / health / logging all
+        apply. Two defaults suit measurement: the cache is bypassed
+        (`use_cache=False`) so latency is real, and a per-provider failure
+        becomes a row with ``ok=False`` instead of aborting the run.
+        """
+        candidates = self._resolve_compare_candidates(
+            providers, modality, strategy
+        )
+        return run_compare_sync(
+            self, candidates, prompt=prompt, params=params, use_cache=use_cache
+        )
+
+    def _resolve_compare_candidates(
+        self,
+        providers: list[Any],
+        modality: str,
+        strategy: StrategyLike | None,
+    ) -> list[Candidate]:
+        """Turn each `compare()` entry into a concrete `Candidate`.
+
+        Health is intentionally ignored here — a benchmark should exercise
+        every named provider, including one whose circuit is currently
+        open, so the caller sees how it actually performs right now.
+        """
+        if not isinstance(providers, (list, tuple)) or len(providers) == 0:
+            raise ValueError(
+                "compare() requires a non-empty providers list"
+            )
+        strat = (
+            RoutingStrategy.coerce(strategy)
+            if strategy is not None
+            else _DEFAULT_STRATEGY
+        )
+        selector = StrategySelector(self.catalog, health=None)
+
+        candidates: list[Candidate] = []
+        for item in providers:
+            candidates.append(
+                self._coerce_compare_item(item, modality, selector, strat)
+            )
+        return candidates
+
+    @staticmethod
+    def _coerce_compare_item(
+        item: Any,
+        modality: str,
+        selector: StrategySelector,
+        strategy: RoutingStrategy,
+    ) -> Candidate:
+        if isinstance(item, Candidate):
+            return item
+        if isinstance(item, str):
+            chosen = selector.best(
+                strategy, modality=modality, providers=[item]
+            )
+            if chosen is None:
+                raise ValueError(
+                    f"provider {item!r} offers no {modality!r} model to compare"
+                )
+            return chosen
+        if isinstance(item, (list, tuple)) and len(item) == 2:
+            return Candidate(provider=item[0], modality=modality, model=item[1])
+        raise TypeError(
+            "compare() providers entries must be a provider name, a "
+            f"(provider, model) pair, or a Candidate — got {item!r}"
+        )
+
     # ---------------- batch ----------------
 
     def submit_batch(
@@ -853,6 +947,26 @@ class AsyncLoom(Loom):
     ) -> dict[str, Any]:
         return await run_route_async(
             self, router, prompt=prompt, params=params, use_cache=use_cache
+        )
+
+    async def compare(  # type: ignore[override]
+        self,
+        *,
+        prompt: str,
+        providers: list[Any],
+        modality: str = "text",
+        params: dict[str, Any] | None = None,
+        strategy: StrategyLike | None = None,
+        use_cache: bool = False,
+    ) -> CompareReport:
+        """Async sibling of :meth:`Loom.compare` — fans out with
+        asyncio.gather instead of a thread pool. Same rows, same summary,
+        same per-row failure capture."""
+        candidates = self._resolve_compare_candidates(
+            providers, modality, strategy
+        )
+        return await run_compare_async(
+            self, candidates, prompt=prompt, params=params, use_cache=use_cache
         )
 
 
