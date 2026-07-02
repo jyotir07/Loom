@@ -49,6 +49,7 @@ from loom.errors import (
     RateLimitError,
     StructuredOutputError,
 )
+from loom.observability import Analytics, InMemorySink
 from loom.types import (
     Cost,
     ImagePayload,
@@ -89,6 +90,8 @@ __all__ = [
     "CompareReport",
     "CompareResult",
     "CompareSummary",
+    "Analytics",
+    "InMemorySink",
     "LoomError",
     "ProviderError",
     "AuthError",

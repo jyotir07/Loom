@@ -46,7 +46,8 @@ def summary(sink: EventSink, *, window_seconds: int | None = None) -> dict[str, 
             COALESCE(SUM(output_tokens), 0) AS output_tokens,
             SUM(CASE WHEN cached = 1 THEN 1 ELSE 0 END) AS cached_calls,
             SUM(CASE WHEN deduped = 1 THEN 1 ELSE 0 END) AS deduped_calls,
-            SUM(CASE WHEN ok = 0 THEN 1 ELSE 0 END) AS failed_calls
+            SUM(CASE WHEN ok = 0 THEN 1 ELSE 0 END) AS failed_calls,
+            COALESCE(SUM(retries), 0) AS retries
         FROM loom_events
         WHERE {where}
     """
@@ -63,6 +64,7 @@ def summary(sink: EventSink, *, window_seconds: int | None = None) -> dict[str, 
         "avg_latency_ms": round(float(row["avg_latency_ms"] or 0.0), 2),
         "input_tokens": int(row["input_tokens"] or 0),
         "output_tokens": int(row["output_tokens"] or 0),
+        "retries": int(row["retries"] or 0),
         "cache_hit_pct": _pct(row["cached_calls"]),
         "dedup_pct": _pct(row["deduped_calls"]),
         "error_pct": _pct(row["failed_calls"]),
@@ -142,10 +144,18 @@ def recent(
     sql = """
         SELECT ts, provider, modality, model, upstream_model,
                latency_ms, input_tokens, output_tokens, cost_usd,
-               ok, cached, deduped, error_type, error
+               ok, cached, deduped, retries, tags, error_type, error
         FROM loom_events
         ORDER BY id DESC
         LIMIT ?
     """
     rows = sink.fetch(sql=sql, params=(int(limit),))
+    for r in rows:
+        if r.get("tags"):
+            import json
+
+            try:
+                r["tags"] = json.loads(r["tags"])
+            except (ValueError, TypeError):
+                pass
     return rows

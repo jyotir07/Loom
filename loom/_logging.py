@@ -19,7 +19,11 @@ so calls become visible there automatically.
 from __future__ import annotations
 
 import logging
-from typing import Any
+import time
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from loom.observability.sink import EventSink
 
 logger = logging.getLogger("loom")
 
@@ -35,6 +39,9 @@ def log_call(
     error: BaseException | None = None,
     cached: bool = False,
     deduped: bool = False,
+    retries: int = 0,
+    tags: Any | None = None,
+    sink: "EventSink | None" = None,
 ) -> None:
     usage = (result or {}).get("usage") or {}
     cost = (result or {}).get("cost") or {}
@@ -53,10 +60,22 @@ def log_call(
         "ok": error is None,
         "cached": cached,
         "deduped": deduped,
+        "retries": retries,
     }
+    if tags:
+        extra["tags"] = tags
     if error is not None:
         extra["error_type"] = type(error).__name__
         extra["error"] = str(error)
+    # Write to the client's own sink first — this is what powers
+    # client.analytics(). It's separate from the "loom" logger, so wiring a
+    # sink here never mutates global logging state for other consumers.
+    if sink is not None:
+        try:
+            sink.write({**extra, "ts": time.time()})
+        except Exception:  # a broken sink must never crash the call
+            pass
+    if error is not None:
         logger.warning(
             "loom.generate failed: %s/%s %s -> %s (%.0fms)",
             provider,

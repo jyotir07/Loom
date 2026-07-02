@@ -23,8 +23,9 @@ Sink and handler have no Flask dependency; only `make_dashboard`
 imports Flask, and does so lazily.
 """
 
+from loom.observability.analytics import Analytics
 from loom.observability.handler import LoomLogHandler
-from loom.observability.sink import EventSink, SQLiteSink
+from loom.observability.sink import EventSink, InMemorySink, SQLiteSink
 
 
 def make_dashboard(sink: EventSink):
@@ -34,4 +35,11 @@ def make_dashboard(sink: EventSink):
     return _make(sink)
 
 
-__all__ = ["EventSink", "SQLiteSink", "LoomLogHandler", "make_dashboard"]
+__all__ = [
+    "EventSink",
+    "SQLiteSink",
+    "InMemorySink",
+    "LoomLogHandler",
+    "Analytics",
+    "make_dashboard",
+]

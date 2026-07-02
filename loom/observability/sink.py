@@ -11,6 +11,7 @@ The sink owns the schema. Queries that the dashboard runs live in
 
 from __future__ import annotations
 
+import json
 import sqlite3
 import threading
 import time
@@ -49,6 +50,8 @@ CREATE TABLE IF NOT EXISTS loom_events (
     ok INTEGER NOT NULL,
     cached INTEGER NOT NULL,
     deduped INTEGER NOT NULL,
+    retries INTEGER NOT NULL DEFAULT 0,
+    tags TEXT,
     error_type TEXT,
     error TEXT
 );
@@ -57,14 +60,21 @@ CREATE INDEX IF NOT EXISTS idx_loom_events_provider ON loom_events(provider);
 CREATE INDEX IF NOT EXISTS idx_loom_events_model ON loom_events(model);
 """
 
+# Columns added after the original schema shipped. On an existing on-disk
+# DB the CREATE TABLE above is a no-op, so we ALTER-add anything missing.
+_MIGRATIONS = (
+    ("retries", "INTEGER NOT NULL DEFAULT 0"),
+    ("tags", "TEXT"),
+)
+
 
 _INSERT_SQL = """
 INSERT INTO loom_events (
     ts, provider, modality, model, upstream_model, latency_ms,
     input_tokens, output_tokens, total_tokens,
     cost_usd, cost_local, cost_currency,
-    ok, cached, deduped, error_type, error
-) VALUES (?, ?, ?, ?, ?, ?,  ?, ?, ?,  ?, ?, ?,  ?, ?, ?, ?, ?)
+    ok, cached, deduped, retries, tags, error_type, error
+) VALUES (?, ?, ?, ?, ?, ?,  ?, ?, ?,  ?, ?, ?,  ?, ?, ?, ?, ?, ?, ?)
 """
 
 
@@ -72,7 +82,7 @@ _FIELDS = (
     "ts", "provider", "modality", "model", "upstream_model", "latency_ms",
     "input_tokens", "output_tokens", "total_tokens",
     "cost_usd", "cost_local", "cost_currency",
-    "ok", "cached", "deduped", "error_type", "error",
+    "ok", "cached", "deduped", "retries", "tags", "error_type", "error",
 )
 
 
@@ -99,10 +109,22 @@ class SQLiteSink:
     def _init_schema(self) -> None:
         with self._lock:
             self._conn.executescript(_SCHEMA)
+            existing = {
+                r["name"]
+                for r in self._conn.execute(
+                    "PRAGMA table_info(loom_events)"
+                ).fetchall()
+            }
+            for column, ddl in _MIGRATIONS:
+                if column not in existing:
+                    self._conn.execute(
+                        f"ALTER TABLE loom_events ADD COLUMN {column} {ddl}"
+                    )
             self._conn.commit()
 
     def write(self, event: dict[str, Any]) -> None:
         """Insert one event row. Missing fields default to NULL / 0."""
+        tags = event.get("tags")
         row = (
             float(event.get("ts") or time.time()),
             str(event.get("provider") or ""),
@@ -119,6 +141,8 @@ class SQLiteSink:
             1 if event.get("ok", True) else 0,
             1 if event.get("cached") else 0,
             1 if event.get("deduped") else 0,
+            int(event.get("retries") or 0),
+            json.dumps(tags) if tags else None,
             event.get("error_type"),
             event.get("error"),
         )
@@ -144,3 +168,16 @@ class SQLiteSink:
     def count(self) -> int:
         rows = self.fetch(sql="SELECT COUNT(*) AS n FROM loom_events")
         return int(rows[0]["n"]) if rows else 0
+
+
+class InMemorySink(SQLiteSink):
+    """Zero-config in-process event sink — a SQLite ``:memory:`` database.
+
+    This is the default sink every :class:`~loom.Loom` client uses to power
+    ``client.analytics()``. It speaks the same SQL as :class:`SQLiteSink`, so
+    all `loom.observability.queries` work against it unchanged; nothing is
+    persisted beyond the client's lifetime.
+    """
+
+    def __init__(self) -> None:
+        super().__init__(":memory:")

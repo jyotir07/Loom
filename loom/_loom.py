@@ -60,6 +60,7 @@ from loom._router import (
 from loom.batch import BatchHandle, BatchRequest
 from loom.catalog import Catalog
 from loom.errors import ProviderError, RateLimitError
+from loom.observability import Analytics, EventSink, InMemorySink
 from loom.routing import (
     CircuitState,
     HealthRegistry,
@@ -108,6 +109,7 @@ class Loom:
         vault: Any | None = None,
         health: HealthRegistry | None = _UNSET,
         balancer: LoadBalancer | None = None,
+        analytics: bool | EventSink = True,
     ) -> None:
         self.catalog = catalog or Catalog()
         self.api_keys: dict[str, str] = dict(api_keys or {})
@@ -130,6 +132,16 @@ class Loom:
         # (generate(prompt=...)) spreads traffic across its provider pool
         # instead of always landing on the single best model.
         self.balancer = balancer
+        # Analytics sink. Default: a zero-config in-memory sink powering
+        # client.analytics(). analytics=True -> fresh InMemorySink;
+        # analytics=False -> disabled; or pass a custom EventSink. Writes
+        # go straight to this sink, never through the global "loom" logger.
+        if analytics is True:
+            self._sink: EventSink | None = InMemorySink()
+        elif analytics is False:
+            self._sink = None
+        else:
+            self._sink = analytics
 
     @classmethod
     def from_env(
@@ -146,6 +158,7 @@ class Loom:
         vault: Any | None = None,
         health: HealthRegistry | None = _UNSET,
         balancer: LoadBalancer | None = None,
+        analytics: bool | EventSink = True,
     ) -> "Loom":
         """Build a Loom that reads vendor keys from environment variables.
 
@@ -177,6 +190,7 @@ class Loom:
             vault=vault,
             health=health,
             balancer=balancer,
+            analytics=analytics,
         )
 
     def generate(
@@ -192,6 +206,7 @@ class Loom:
         router: StrategyLike | None = None,
         fallback: FallbackPolicy | None = None,
         schema: Any | None = None,
+        tags: Any | None = None,
     ) -> Any:
         """Generate a response, optionally as a validated `schema` object.
 
@@ -202,12 +217,17 @@ class Loom:
         schema instance instead of the dict — a provider-agnostic
         structured output. Pydantic is an optional dependency required only
         when `schema=` is used. `schema=` applies to `modality="text"`.
+
+        `tags` is arbitrary caller metadata (e.g. `{"feature": "chat"}`)
+        recorded on the analytics event for this call; see
+        `client.analytics()`.
         """
         if schema is None:
             return self._run_generate(
                 provider=provider, modality=modality, model=model,
                 prompt=prompt, params=params, use_cache=use_cache,
                 providers=providers, router=router, fallback=fallback,
+                tags=tags,
             )
         if modality != "text":
             raise _structured.StructuredOutputError(
@@ -219,6 +239,7 @@ class Loom:
             prompt=_structured.augment_prompt(prompt, schema),
             params=self._schema_params(params, schema), use_cache=use_cache,
             providers=providers, router=router, fallback=fallback,
+            tags=tags,
         )
         return _structured.parse(schema, result.get("text"))
 
@@ -252,6 +273,7 @@ class Loom:
         providers: list[str] | None = None,
         router: StrategyLike | None = None,
         fallback: FallbackPolicy | None = None,
+        tags: Any | None = None,
     ) -> dict[str, Any]:
         """Resolve `model` against the catalog and dispatch to the provider.
 
@@ -325,11 +347,11 @@ class Loom:
         if self.cache is not None and use_cache:
             cached = self.cache.get(key)
             if cached is not None:
-                log_call(
+                self._log(
                     provider=provider, modality=modality, model=model,
                     upstream_model=upstream_model,
                     latency_ms=(time.perf_counter() - started) * 1000.0,
-                    result=cached, cached=True,
+                    result=cached, cached=True, tags=tags,
                 )
                 return cached
 
@@ -344,26 +366,29 @@ class Loom:
             assert slot is not None
             slot.event.wait()
             if slot.error is not None:
-                log_call(
+                self._log(
                     provider=provider, modality=modality, model=model,
                     upstream_model=upstream_model,
                     latency_ms=(time.perf_counter() - started) * 1000.0,
-                    result=None, error=slot.error, deduped=True,
+                    result=None, error=slot.error, deduped=True, tags=tags,
                 )
                 raise slot.error
             assert slot.result is not None
-            log_call(
+            self._log(
                 provider=provider, modality=modality, model=model,
                 upstream_model=upstream_model,
                 latency_ms=(time.perf_counter() - started) * 1000.0,
-                result=slot.result, deduped=True,
+                result=slot.result, deduped=True, tags=tags,
             )
             return slot.result
 
         # 3. We own the slot — run the upstream call (with retry) and fan out.
         ctx = _context.LoomContext(api_keys=self.api_keys, vault=self.vault)
+        attempts = 0
         try:
             def _do_call() -> dict[str, Any]:
+                nonlocal attempts
+                attempts += 1
                 with _context.use(ctx):
                     return _providers.generate(
                         provider, modality, upstream_model, merged, prompt
@@ -371,11 +396,12 @@ class Loom:
 
             result = run_with_retry(self.retry, _do_call)
         except BaseException as exc:
-            log_call(
+            self._log(
                 provider=provider, modality=modality, model=model,
                 upstream_model=upstream_model,
                 latency_ms=(time.perf_counter() - started) * 1000.0,
                 result=None, error=exc,
+                retries=max(attempts - 1, 0), tags=tags,
             )
             self._record_health_failure(provider, exc)
             if self._inflight is not None:
@@ -390,11 +416,11 @@ class Loom:
         self._record_health_success(provider, started)
         if self.cache is not None and use_cache:
             self.cache.set(key, enriched)
-        log_call(
+        self._log(
             provider=provider, modality=modality, model=model,
             upstream_model=upstream_model,
             latency_ms=(time.perf_counter() - started) * 1000.0,
-            result=enriched,
+            result=enriched, retries=max(attempts - 1, 0), tags=tags,
         )
         if self._inflight is not None:
             self._inflight.finish_sync(key, result=enriched)
@@ -430,6 +456,32 @@ class Loom:
         if cost is not None:
             result["cost"] = cost
         return result
+
+    # ---------------- analytics ----------------
+
+    def _log(self, **kwargs: Any) -> None:
+        """Emit one call record — to the `loom` logger and this client's
+        analytics sink. A thin wrapper so every log_call site records to
+        `self._sink` without repeating it."""
+        log_call(**kwargs, sink=self._sink)
+
+    def analytics(self) -> Analytics:
+        """Return an :class:`~loom.observability.Analytics` view over this
+        client's recorded calls.
+
+            client.analytics().summary()
+            client.analytics().by_provider()
+
+        Requires analytics to be enabled (the default). Construct with
+        ``Loom(analytics=False)`` to disable recording; calling this then
+        raises.
+        """
+        if self._sink is None:
+            raise RuntimeError(
+                "analytics is disabled on this client — construct it with "
+                "analytics=True (the default) to record call metrics"
+            )
+        return Analytics(self._sink)
 
     # ---------------- health ----------------
 
@@ -879,6 +931,7 @@ class AsyncLoom(Loom):
         router: StrategyLike | None = None,
         fallback: FallbackPolicy | None = None,
         schema: Any | None = None,
+        tags: Any | None = None,
     ) -> Any:
         """Async sibling of :meth:`Loom.generate`. With `schema=`, returns a
         validated Pydantic instance instead of the response dict; otherwise
@@ -888,6 +941,7 @@ class AsyncLoom(Loom):
                 provider=provider, modality=modality, model=model,
                 prompt=prompt, params=params, use_cache=use_cache,
                 providers=providers, router=router, fallback=fallback,
+                tags=tags,
             )
         if modality != "text":
             raise _structured.StructuredOutputError(
@@ -899,6 +953,7 @@ class AsyncLoom(Loom):
             prompt=_structured.augment_prompt(prompt, schema),
             params=self._schema_params(params, schema), use_cache=use_cache,
             providers=providers, router=router, fallback=fallback,
+            tags=tags,
         )
         return _structured.parse(schema, result.get("text"))
 
@@ -914,6 +969,7 @@ class AsyncLoom(Loom):
         providers: list[str] | None = None,
         router: StrategyLike | None = None,
         fallback: FallbackPolicy | None = None,
+        tags: Any | None = None,
     ) -> dict[str, Any]:
         if fallback is not None:
             chain = self._resolve_fallback_chain(
@@ -963,11 +1019,11 @@ class AsyncLoom(Loom):
         if self.cache is not None and use_cache:
             cached = self.cache.get(key)
             if cached is not None:
-                log_call(
+                self._log(
                     provider=provider, modality=modality, model=model,
                     upstream_model=upstream_model,
                     latency_ms=(time.perf_counter() - started) * 1000.0,
-                    result=cached, cached=True,
+                    result=cached, cached=True, tags=tags,
                 )
                 return cached
 
@@ -980,25 +1036,28 @@ class AsyncLoom(Loom):
             assert slot is not None
             await slot.event.wait()
             if slot.error is not None:
-                log_call(
+                self._log(
                     provider=provider, modality=modality, model=model,
                     upstream_model=upstream_model,
                     latency_ms=(time.perf_counter() - started) * 1000.0,
-                    result=None, error=slot.error, deduped=True,
+                    result=None, error=slot.error, deduped=True, tags=tags,
                 )
                 raise slot.error
             assert slot.result is not None
-            log_call(
+            self._log(
                 provider=provider, modality=modality, model=model,
                 upstream_model=upstream_model,
                 latency_ms=(time.perf_counter() - started) * 1000.0,
-                result=slot.result, deduped=True,
+                result=slot.result, deduped=True, tags=tags,
             )
             return slot.result
 
         ctx = _context.LoomContext(api_keys=self.api_keys, vault=self.vault)
+        attempts = 0
         try:
             async def _do_call() -> dict[str, Any]:
+                nonlocal attempts
+                attempts += 1
                 with _context.use(ctx):
                     return await _providers.agenerate(
                         provider, modality, upstream_model, merged, prompt
@@ -1006,11 +1065,12 @@ class AsyncLoom(Loom):
 
             result = await arun_with_retry(self.retry, _do_call)
         except BaseException as exc:
-            log_call(
+            self._log(
                 provider=provider, modality=modality, model=model,
                 upstream_model=upstream_model,
                 latency_ms=(time.perf_counter() - started) * 1000.0,
                 result=None, error=exc,
+                retries=max(attempts - 1, 0), tags=tags,
             )
             self._record_health_failure(provider, exc)
             if self._inflight is not None:
@@ -1025,11 +1085,11 @@ class AsyncLoom(Loom):
         self._record_health_success(provider, started)
         if self.cache is not None and use_cache:
             self.cache.set(key, enriched)
-        log_call(
+        self._log(
             provider=provider, modality=modality, model=model,
             upstream_model=upstream_model,
             latency_ms=(time.perf_counter() - started) * 1000.0,
-            result=enriched,
+            result=enriched, retries=max(attempts - 1, 0), tags=tags,
         )
         if self._inflight is not None:
             self._inflight.finish_async(key, result=enriched)
@@ -1097,12 +1157,14 @@ def generate(
     router: StrategyLike | None = None,
     fallback: FallbackPolicy | None = None,
     schema: Any | None = None,
+    tags: Any | None = None,
 ) -> Any:
     """Module-level convenience — runs on the default Loom.from_env() instance.
 
     Accepts the same explicit (`provider`+`model`) or routing
     (`providers=` / `router=` / `fallback=`) entry points as `Loom.generate`,
-    plus `schema=` for a validated structured-output object.
+    plus `schema=` for a validated structured-output object and `tags=` for
+    analytics metadata.
     """
     return _get_default().generate(
         provider=provider,
@@ -1114,6 +1176,7 @@ def generate(
         router=router,
         fallback=fallback,
         schema=schema,
+        tags=tags,
     )
 
 
@@ -1128,11 +1191,13 @@ async def agenerate(
     router: StrategyLike | None = None,
     fallback: FallbackPolicy | None = None,
     schema: Any | None = None,
+    tags: Any | None = None,
 ) -> Any:
     """Async module-level convenience — runs on the default AsyncLoom.from_env().
 
     Accepts the same explicit or routing entry points as
-    `AsyncLoom.generate`, plus `schema=` for a validated structured object.
+    `AsyncLoom.generate`, plus `schema=` for a validated structured object
+    and `tags=` for analytics metadata.
     """
     return await _get_async_default().generate(
         provider=provider,
@@ -1144,4 +1209,5 @@ async def agenerate(
         router=router,
         fallback=fallback,
         schema=schema,
+        tags=tags,
     )
