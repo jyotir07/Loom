@@ -93,6 +93,41 @@ This is where Loom pays for itself. These optimizations are built once, in the f
 
 These numbers are ceilings, not guarantees — actual savings depend on workload. A project making 100% unique real-time calls won't benefit much from caching. The point is: the headroom exists, and projects don't have to build any of it themselves.
 
+### Intelligent routing (v2)
+
+v2 turns Loom from a provider abstraction into an intelligent routing layer — applications state *intent*, and Loom decides which provider and model to call. Every feature is additive; the explicit `generate(provider=, model=)` call is unchanged.
+
+```python
+# Let Loom choose the model
+client.generate(prompt="Summarize this contract.")
+
+# Named strategy — cheapest | fastest | highest_quality | balanced
+client.generate(router="cheapest", prompt=...)
+
+# Preferred providers, in order (health-aware, skips degraded ones)
+client.generate(providers=["gemini", "openai", "anthropic"], prompt=...)
+
+# Automatic cross-vendor fallback on retryable failures
+from loom import FallbackPolicy
+client.generate(prompt=..., fallback=FallbackPolicy(retries=3))
+
+# Validated, provider-agnostic structured output  (pip install loom[structured])
+from pydantic import BaseModel
+class User(BaseModel):
+    name: str
+    age: int
+user = client.generate(prompt="Extract the user...", schema=User)
+
+# Benchmark providers side-by-side for a task
+report = client.compare(providers=["openai", "anthropic", "gemini"], prompt=...)
+print(report.summary.cheapest.provider, report.summary.fastest.provider)
+
+# Zero-config usage analytics
+client.analytics().summary(window="24h")
+```
+
+Backing all of this: a **health monitor** (per-provider circuit breaker, EWMA latency, rate-limit cooldown) that routing consults automatically, and an optional **load balancer** (`round_robin` / `weighted` / `least_latency` / `least_failures`) to spread traffic across a pool. See [`docs/routing_cookbook.md`](docs/routing_cookbook.md) for the full tour and [`CHANGELOG.md`](CHANGELOG.md) for the complete 2.0.0 list.
+
 ### Centralized key management
 
 API keys live in one place — the Loom deployment — not in each consuming project's repo or environment. Projects authenticate to Loom with their own credentials and never see vendor keys.

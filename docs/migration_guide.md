@@ -440,6 +440,37 @@ just like any internal admin page.
 
 ---
 
+## Migrating to v2
+
+v2 turns Loom from a provider abstraction into an intelligent routing
+layer. **Nothing you wrote for 1.x needs to change** — every explicit
+`generate(provider=, modality=, model=)` call behaves identically, no
+symbols were removed, and the version bump to 2.0.0 reflects the size of
+the *new* surface, not a break. Adopt the new features where they help;
+ignore them everywhere else.
+
+The full tour lives in `docs/routing_cookbook.md`. The one-paragraph
+version:
+
+- **Stop hard-coding the model** where you don't care which one runs.
+  `generate(prompt=...)` picks one for you; `generate(router="cheapest")`
+  picks the cheapest capable model; `generate(providers=["gemini",
+  "openai"])` tries your preferred order.
+- **Survive vendor outages** with `fallback=FallbackPolicy(retries=3)`
+  instead of a hand-rolled `Router` chain (though `Router`/`route()` still
+  work exactly as before).
+- **Get typed results** with `schema=YourPydanticModel` — `pip install
+  loom[structured]`.
+- **Compare providers** for a task with `client.compare(providers=[...],
+  prompt=...)`.
+- **Read your own usage** with `client.analytics().summary()` — on by
+  default, no wiring.
+
+None of these are required. The safest migration is no migration: upgrade
+the pin, run your suite, adopt a feature per PR when you have a reason.
+
+---
+
 ## Cost logging
 
 Every successful call returns a `cost` field:
