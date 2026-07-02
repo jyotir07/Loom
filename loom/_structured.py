@@ -36,6 +36,14 @@ except ImportError:  # pragma: no cover - covered via monkeypatch in tests
     _HAS_PYDANTIC = False
 
 
+# Reserved params key carrying the JSON schema down to native-capable
+# provider adapters. It never reaches a vendor SDK: native adapters pop it
+# (see take_response_schema) and translate it into their own structured-
+# output shape, while the dispatch layer strips it for providers without
+# native support (they rely on the augmented-prompt JSON fallback instead).
+RESPONSE_SCHEMA_KEY = "_loom_response_schema"
+
+
 def is_schema(schema: Any) -> bool:
     """Whether `schema` is a schema type Loom understands (Pydantic today)."""
     return (
@@ -87,6 +95,40 @@ def augment_prompt(prompt: str, schema: Any) -> str:
         "commentary.\n\n"
         f"JSON Schema:\n{rendered}"
     )
+
+
+def response_schema_spec(schema: Any) -> dict[str, Any]:
+    """The provider-neutral schema descriptor carried to native adapters.
+
+    ``{"name": <schema name>, "schema": <JSON Schema dict>}`` — each native
+    adapter maps this onto its own SDK shape (OpenAI ``response_format``,
+    Anthropic tool ``input_schema``, Gemini ``response_schema``).
+    """
+    return {
+        "name": getattr(schema, "__name__", "Response"),
+        "schema": _json_schema(schema),
+    }
+
+
+def take_response_schema(
+    params: dict[str, Any] | None,
+) -> tuple[dict[str, Any], dict[str, Any] | None]:
+    """Split the reserved schema spec out of `params`.
+
+    Returns ``(params_without_key, spec_or_None)``. Native adapters call
+    this first so the reserved key is never forwarded to the vendor SDK.
+    """
+    rest = dict(params or {})
+    spec = rest.pop(RESPONSE_SCHEMA_KEY, None)
+    return rest, spec
+
+
+def strip_response_schema(params: dict[str, Any] | None) -> dict[str, Any]:
+    """Drop the reserved schema key — used for providers without a native
+    structured-output path (the augmented prompt already carries the schema)."""
+    if not params or RESPONSE_SCHEMA_KEY not in params:
+        return params or {}
+    return {k: v for k, v in params.items() if k != RESPONSE_SCHEMA_KEY}
 
 
 def _strip_fences(text: str) -> str:
@@ -145,4 +187,8 @@ __all__ = [
     "ensure_available",
     "augment_prompt",
     "parse",
+    "RESPONSE_SCHEMA_KEY",
+    "response_schema_spec",
+    "take_response_schema",
+    "strip_response_schema",
 ]

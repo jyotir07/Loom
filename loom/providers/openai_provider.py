@@ -33,6 +33,28 @@ def _async_client():
     return AsyncOpenAI(api_key=require_env("OPENAI_API_KEY"))
 
 
+def _apply_response_schema(params: dict[str, Any]) -> dict[str, Any]:
+    """Translate Loom's reserved schema key into OpenAI's native
+    `response_format` (json_schema mode). A no-op when no schema is present,
+    and the reserved key is always removed so it never hits the SDK."""
+    from loom._structured import take_response_schema
+
+    rest, spec = take_response_schema(params)
+    if spec is None:
+        return rest
+    rest.setdefault(
+        "response_format",
+        {
+            "type": "json_schema",
+            "json_schema": {
+                "name": spec["name"],
+                "schema": spec["schema"],
+            },
+        },
+    )
+    return rest
+
+
 def _openai_usage(resp: Any) -> dict[str, int] | None:
     """Pull usage + cached_tokens from an OpenAI chat completions response."""
     usage = getattr(resp, "usage", None)
@@ -56,7 +78,7 @@ def _text(model: str, params: dict[str, Any], prompt: str) -> dict[str, Any]:
     resp = _client().chat.completions.create(
         model=model,
         messages=[{"role": "user", "content": prompt}],
-        **params,
+        **_apply_response_schema(params),
     )
     out = text_response(resp.choices[0].message.content or "")
     usage = _openai_usage(resp)
@@ -95,7 +117,7 @@ async def _atext(model: str, params: dict[str, Any], prompt: str) -> dict[str, A
     resp = await _async_client().chat.completions.create(
         model=model,
         messages=[{"role": "user", "content": prompt}],
-        **params,
+        **_apply_response_schema(params),
     )
     out = text_response(resp.choices[0].message.content or "")
     usage = _openai_usage(resp)
