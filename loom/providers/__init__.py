@@ -86,6 +86,20 @@ def available() -> list[str]:
     return list(_LAZY.keys())
 
 
+def _prepare_params(
+    provider: str, params: dict[str, Any]
+) -> dict[str, Any]:
+    """Strip the reserved structured-output schema key for providers without
+    a native path — they fall back to the augmented-prompt JSON strategy, and
+    the key must never reach their SDK. Native providers keep it and consume
+    it in their own adapter."""
+    if supports_structured_output(provider):
+        return params
+    from loom._structured import strip_response_schema
+
+    return strip_response_schema(params)
+
+
 def generate(
     provider: str,
     modality: str,
@@ -95,7 +109,7 @@ def generate(
 ) -> dict[str, Any]:
     """Route a generate() call to the right provider module."""
     module = _module_for(provider)
-    return module.generate(modality, model, params, prompt)
+    return module.generate(modality, model, _prepare_params(provider, params), prompt)
 
 
 async def agenerate(
@@ -112,11 +126,12 @@ async def agenerate(
     via asyncio.to_thread so callers still get a non-blocking await.
     """
     module = _module_for(provider)
+    prepared = _prepare_params(provider, params)
     native = getattr(module, "agenerate", None)
     if native is not None:
-        return await native(modality, model, params, prompt)
+        return await native(modality, model, prepared, prompt)
     return await asyncio.to_thread(
-        module.generate, modality, model, params, prompt
+        module.generate, modality, model, prepared, prompt
     )
 
 

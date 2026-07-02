@@ -44,11 +44,18 @@ def _split_text_params(params: dict[str, Any] | None) -> tuple[dict[str, Any], d
     rather than a top-level argument. We pop the known config-level
     knobs here so callers can keep the flat Loom-side dict shape.
     """
-    rest = dict(params or {})
+    from loom._structured import take_response_schema
+
+    rest, schema_spec = take_response_schema(params)
     cfg: dict[str, Any] = {}
     cached_content = rest.pop("cached_content", None)
     if cached_content is not None:
         cfg["cached_content"] = cached_content
+    if schema_spec is not None:
+        # Native structured output: Gemini enforces the schema itself and
+        # returns JSON directly.
+        cfg["response_mime_type"] = "application/json"
+        cfg["response_schema"] = schema_spec["schema"]
     # If a caller passes an explicit `config` dict, merge our additions
     # on top — caller wins on conflict so they can override.
     explicit_cfg = rest.pop("config", None)

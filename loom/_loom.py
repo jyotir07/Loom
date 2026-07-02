@@ -217,10 +217,28 @@ class Loom:
         result = self._run_generate(
             provider=provider, modality=modality, model=model,
             prompt=_structured.augment_prompt(prompt, schema),
-            params=params, use_cache=use_cache,
+            params=self._schema_params(params, schema), use_cache=use_cache,
             providers=providers, router=router, fallback=fallback,
         )
         return _structured.parse(schema, result.get("text"))
+
+    @staticmethod
+    def _schema_params(
+        params: dict[str, Any] | None, schema: Any
+    ) -> dict[str, Any]:
+        """Carry the JSON schema down to native-capable adapters.
+
+        The augmented prompt already makes every provider emit JSON; this
+        additionally hands native providers (openai/anthropic/gemini) the
+        raw schema via a reserved key so they can enforce it with their own
+        structured-output mode. The dispatch layer strips the key for
+        providers without native support.
+        """
+        merged = dict(params or {})
+        merged[_structured.RESPONSE_SCHEMA_KEY] = (
+            _structured.response_schema_spec(schema)
+        )
+        return merged
 
     def _run_generate(
         self,
@@ -879,7 +897,7 @@ class AsyncLoom(Loom):
         result = await self._run_generate(
             provider=provider, modality=modality, model=model,
             prompt=_structured.augment_prompt(prompt, schema),
-            params=params, use_cache=use_cache,
+            params=self._schema_params(params, schema), use_cache=use_cache,
             providers=providers, router=router, fallback=fallback,
         )
         return _structured.parse(schema, result.get("text"))

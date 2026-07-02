@@ -7,6 +7,7 @@ consistency but has zero entries.
 
 from __future__ import annotations
 
+import json
 from typing import Any
 
 from loom.errors import ProviderError
@@ -14,6 +15,8 @@ from loom.providers._common import require_env, text_response
 
 _API_KEY_ENV = "ANTHROPIC_API_KEY"
 _DEFAULT_MAX_TOKENS = 1024
+# Name of the synthetic tool used to coax structured JSON out of Claude.
+_STRUCTURED_TOOL = "loom_structured_output"
 
 
 def _client():
@@ -45,7 +48,9 @@ def _build_kwargs(model: str, params: dict[str, Any], prompt: str) -> dict[str, 
     All other params (max_tokens, temperature, etc.) pass through
     unchanged to messages.create.
     """
-    kwargs = dict(params)
+    from loom._structured import take_response_schema
+
+    kwargs, schema_spec = take_response_schema(params)
     cache_system = bool(kwargs.pop("cache_system", False))
     cache_user = bool(kwargs.pop("cache_user", False))
     system = kwargs.pop("system", None)
@@ -73,6 +78,20 @@ def _build_kwargs(model: str, params: dict[str, Any], prompt: str) -> dict[str, 
     else:
         user_content = prompt
 
+    if schema_spec is not None:
+        # Native structured output: expose the schema as a single tool and
+        # force Claude to call it, so its `input` is guaranteed-shape JSON.
+        kwargs["tools"] = [
+            {
+                "name": _STRUCTURED_TOOL,
+                "description": (
+                    "Return the result as structured data matching the schema."
+                ),
+                "input_schema": schema_spec["schema"],
+            }
+        ]
+        kwargs["tool_choice"] = {"type": "tool", "name": _STRUCTURED_TOOL}
+
     kwargs.setdefault("max_tokens", _DEFAULT_MAX_TOKENS)
     kwargs["model"] = model
     kwargs["messages"] = [{"role": "user", "content": user_content}]
@@ -80,8 +99,15 @@ def _build_kwargs(model: str, params: dict[str, Any], prompt: str) -> dict[str, 
 
 
 def _to_text(resp: Any) -> str:
+    # Structured output arrives as a tool_use block whose `input` is the
+    # schema-shaped object — serialize it to JSON so the shared parser
+    # validates it exactly like any other provider's text.
     parts: list[str] = []
     for block in getattr(resp, "content", []) or []:
+        if getattr(block, "type", None) == "tool_use":
+            tool_input = getattr(block, "input", None)
+            if tool_input is not None:
+                return json.dumps(tool_input)
         text = getattr(block, "text", None)
         if text:
             parts.append(text)
