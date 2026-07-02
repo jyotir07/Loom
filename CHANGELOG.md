@@ -2,6 +2,89 @@
 
 All notable changes to Loom. Versions follow [semantic versioning](https://semver.org).
 
+## [2.0.0] — 2026-07-02
+
+**Loom becomes an intelligent routing layer.** Applications stop encoding
+which provider/model to call — they state intent, and Loom decides. Every
+change is **additive and backward-compatible**: the explicit
+`generate(provider=, modality=, model=)` path behaves exactly as in 1.x,
+and no public symbol was removed. The major bump reflects the size of the
+new surface, not a break. See `docs/routing_cookbook.md` for the full tour
+and the "Migrating to v2" section of `docs/migration_guide.md`.
+
+### Added
+
+#### Intelligent routing in `generate()`
+- `generate(providers=[...])` — try providers in preference order, best
+  model each, with automatic health-aware reordering.
+- `generate(router="cheapest" | "fastest" | "highest_quality" | "balanced")`
+  — named strategies (also `RoutingStrategy` enum).
+- `generate(prompt=...)` alone — fully automatic provider + model
+  selection (default `balanced` strategy, modality inferred, default text).
+- `RoutingStrategy`, `StrategySelector`, and a `RoutingSignals` layer that
+  blends static catalog metadata with live runtime signals.
+- Optional catalog metadata: `context_window`, `quality_tier`,
+  `latency_class`, `capabilities`, read via `Catalog.metadata(...)`.
+
+#### Automatic fallback
+- `FallbackPolicy(retries=, providers=)` + `generate(fallback=...)` — walk a
+  provider chain on retryable failures, each attempt under the client's
+  `RetryPolicy`, tagged with a `_router` trace.
+
+#### Health monitoring
+- `HealthRegistry` — per-provider EWMA latency, rolling failure counts,
+  rate-limit cooldown, and a circuit breaker (`CircuitState`:
+  closed / open / half-open). On by default; `Loom(health=None)` disables.
+- Routing consumes it: open-circuit providers are skipped and recovering
+  ones deprioritized — with a no-strand fallback (a degraded provider beats
+  no provider). `client.health` exposes `.status()` / `.state()` / `.snapshot()`.
+
+#### Load balancing
+- `LoadBalancer(strategy=, providers=, weights=)` with `round_robin`,
+  `weighted`, `least_latency`, `least_failures` (`BalancingStrategy`).
+  Wired via `Loom(balancer=...)`; spreads the fully-automatic path across a
+  pool instead of always picking the single best model.
+
+#### Provider benchmarking
+- `client.compare(providers=, prompt=)` (sync + async) — runs candidates
+  concurrently, returns `CompareReport` of `CompareResult` rows
+  (latency / tokens / cost / output) plus a `CompareSummary` naming the
+  cheapest / fastest / highest-quality result. Per-provider failures are
+  captured as `ok=False` rows, not raised.
+
+#### Provider-agnostic structured outputs
+- `generate(schema=PydanticModel)` returns a validated model instance
+  instead of a dict. Pydantic is an optional dependency (`loom[structured]`);
+  a clear `StructuredOutputError` is raised when it's missing or validation
+  fails.
+- Native provider modes: OpenAI `response_format`, Anthropic tool-based
+  JSON, Gemini `response_schema`; other providers fall back to prompt-driven
+  JSON + validation. `providers.supports_structured_output(...)` capability.
+
+#### Analytics
+- Every client records call metrics to a zero-config in-memory sink
+  (`InMemorySink`), surfaced via `client.analytics()` —
+  `summary()`, `by_provider()`, `by_model()`, `recent()`, with an optional
+  time window. `Loom(analytics=False)` opts out, or pass a custom `EventSink`.
+- Events gained `retries` counts and optional per-call `tags=` metadata.
+  Recording writes straight to the client's sink — the global `loom` logger
+  is untouched, so existing handlers are unaffected. Existing on-disk
+  `SQLiteSink` databases migrate automatically.
+
+### Changed
+- `modality` now defaults to `"text"` on `generate()` (was effectively
+  always passed).
+- Package version → 2.0.0; `loom.__version__` and `pyproject.toml` aligned.
+
+### Compatibility
+- No public symbol removed; no deprecations. The v1 stability surface in
+  `docs/stability.md` is unchanged. New parameters (`providers=`, `router=`,
+  `fallback=`, `schema=`, `tags=`) are optional and mutually-exclusive with
+  explicit `provider=`/`model=`; omitting them preserves 1.x behavior
+  exactly. `Router` / `Candidate` / `route()` remain as-is.
+
+---
+
 ## [1.0.0] — 2026-06-14
 
 The v1 stability commitment. The public surface documented in

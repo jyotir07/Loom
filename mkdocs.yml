@@ -40,6 +40,7 @@ theme:
 nav:
   - Home: index.md
   - Getting started: migration_guide.md
+  - Routing cookbook (v2): routing_cookbook.md
   - API reference: api_reference.md
   - Stability: stability.md
   - What to do with Loom:
