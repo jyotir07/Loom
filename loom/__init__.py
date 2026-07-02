@@ -31,7 +31,13 @@ from loom._equivalents import EquivalenceMap
 from loom._loom import AsyncLoom, Loom, agenerate, generate
 from loom._retry import RetryPolicy
 from loom._router import Candidate, FallbackPolicy, Router
-from loom.routing import CircuitState, HealthRegistry, ProviderHealth
+from loom.routing import (
+    BalancingStrategy,
+    CircuitState,
+    HealthRegistry,
+    LoadBalancer,
+    ProviderHealth,
+)
 from loom.batch import BatchHandle, BatchRequest
 from loom.catalog import Catalog
 from loom.errors import (
@@ -76,6 +82,8 @@ __all__ = [
     "HealthRegistry",
     "ProviderHealth",
     "CircuitState",
+    "LoadBalancer",
+    "BalancingStrategy",
     "LoomError",
     "ProviderError",
     "AuthError",
