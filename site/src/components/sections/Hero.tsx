@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Github, BookOpen, ArrowRight } from "lucide-react";
 import { RoutingVisualizer } from "@/components/visuals/RoutingVisualizer";
 import { GlowOrb } from "@/components/ui/GlowOrb";
+import { InstallCommand } from "@/components/ui/InstallCommand";
 
 export function Hero() {
   return (
@@ -75,10 +76,19 @@ export function Hero() {
           </motion.div>
 
           <motion.div
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.33 }}
+            className="mt-5"
+          >
+            <InstallCommand />
+          </motion.div>
+
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-            className="mt-12 flex items-center gap-6 text-[11px] font-mono uppercase tracking-[0.18em] text-white/40"
+            transition={{ duration: 0.8, delay: 0.45 }}
+            className="mt-10 flex items-center gap-6 text-[11px] font-mono uppercase tracking-[0.18em] text-white/40"
           >
             <span className="flex items-center gap-2">
               <span className="h-1 w-1 rounded-full bg-electric-400" /> Python

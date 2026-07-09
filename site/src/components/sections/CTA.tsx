@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { ArrowRight, Github } from "lucide-react";
 import { GlowOrb } from "@/components/ui/GlowOrb";
+import { InstallCommand } from "@/components/ui/InstallCommand";
 
 export function CTA() {
   return (
