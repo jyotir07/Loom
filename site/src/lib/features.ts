@@ -1,15 +1,19 @@
 import type { LucideIcon } from "lucide-react";
 import {
+  GitBranch,
+  ShieldCheck,
+  HeartPulse,
+  Scale,
+  BarChart3,
+  Braces,
+  Activity,
   Boxes,
   Cable,
-  GitBranch,
   Repeat,
-  ShieldCheck,
   Database,
   Layers3,
   Fingerprint,
   DollarSign,
-  Activity,
   KeyRound,
   Plug,
 } from "lucide-react";
@@ -22,8 +26,43 @@ export interface Feature {
 
 export const features: Feature[] = [
   {
+    title: "Intelligent routing",
+    body: 'State intent, not a vendor. router="cheapest" | "fastest" | "highest_quality" | "balanced", providers=[...] in order, or just a prompt — Loom picks the provider and model.',
+    icon: GitBranch,
+  },
+  {
+    title: "Automatic fallback",
+    body: "FallbackPolicy(retries=3, providers=[...]) walks the chain on timeouts, rate limits, and 5xx — each attempt under your retry policy. Cross-vendor equivalence map included.",
+    icon: ShieldCheck,
+  },
+  {
+    title: "Health monitoring",
+    body: "Per-provider circuit breaker with EWMA latency, rolling failure counts, and rate-limit cooldown. Routing skips open circuits and deprioritizes recovering ones.",
+    icon: HeartPulse,
+  },
+  {
+    title: "Load balancing",
+    body: "Spread traffic across a pool: round_robin, weighted, least_latency, or least_failures. Wired once via Loom(balancer=...).",
+    icon: Scale,
+  },
+  {
+    title: "Provider benchmarking",
+    body: "compare(providers=[...], prompt=...) runs candidates concurrently and returns latency, tokens, cost, and output side by side — cheapest, fastest, and best named.",
+    icon: BarChart3,
+  },
+  {
+    title: "Structured outputs",
+    body: "generate(schema=User) returns a validated Pydantic model, not a dict. Native response_format, tool-JSON, and response_schema per provider, with prompt-driven fallback.",
+    icon: Braces,
+  },
+  {
+    title: "Analytics & observability",
+    body: "client.analytics() — summary, by-provider, by-model, recent — over a zero-config in-memory sink. Plus a SQLite sink and read-only Flask dashboard for history.",
+    icon: Activity,
+  },
+  {
     title: "Unified AI API",
-    body: "One stable contract — generate(provider, model, prompt) — across every vendor and modality.",
+    body: "One stable contract — generate(provider, model, prompt) — across every vendor and modality. The explicit path is unchanged and fully supported in v2.",
     icon: Boxes,
   },
   {
@@ -32,19 +71,9 @@ export const features: Feature[] = [
     icon: Cable,
   },
   {
-    title: "Smart model routing",
-    body: "Cheap-first router with caller-supplied validators. Tries candidates in order, returns the first that passes.",
-    icon: GitBranch,
-  },
-  {
     title: "Centralized retries",
     body: "Exponential backoff with jitter, configurable per client. RetryPolicy(max_attempts=3, base_delay=0.5).",
     icon: Repeat,
-  },
-  {
-    title: "Vendor failover",
-    body: "Cross-vendor failover via a bundled equivalence map. When OpenAI is down, Anthropic answers instead.",
-    icon: ShieldCheck,
   },
   {
     title: "Prompt caching",
@@ -65,11 +94,6 @@ export const features: Feature[] = [
     title: "Cost tracking",
     body: "Every result carries cost.usd and cost.local computed from the catalog. Pricing tracked per model.",
     icon: DollarSign,
-  },
-  {
-    title: "Unified observability",
-    body: "Structured INFO line per call: provider, model, latency, tokens, cost. SQLite sink + Flask dashboard.",
-    icon: Activity,
   },
   {
     title: "API key centralization",

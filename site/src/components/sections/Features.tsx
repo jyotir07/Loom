@@ -13,7 +13,7 @@ export function Features() {
         <SectionHeading
           eyebrow="Infrastructure"
           title="Everything you need to run AI in production."
-          description="Twelve infrastructure primitives in one Python package. Production-ready since v1.0, semver-stable, observable end-to-end."
+          description="A full stack of infrastructure primitives in one Python package — from intelligent routing to structured outputs. Backward-compatible in v2.0, semver-stable, observable end-to-end."
         />
 
         <div className="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
