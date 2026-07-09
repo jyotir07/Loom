@@ -79,7 +79,7 @@ export function Footer() {
 
         <div className="mt-14 pt-6 border-t border-white/5 flex flex-wrap items-center justify-between gap-4 text-xs text-white/35 font-mono">
           <span>© 2026 Loom · AI infrastructure</span>
-          <span>v1.0.0 · semver stable · built in Python</span>
+          <span>v2.0.0 · semver stable · built in Python</span>
         </div>
       </div>
     </footer>
