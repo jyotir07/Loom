@@ -10,7 +10,7 @@ export function DeveloperExperience() {
         <SectionHeading
           eyebrow="Developer experience"
           title="Designed for engineers who ship."
-          description="One stable function call per workflow. Every code path returns the same response shape — text, usage, cost — across every vendor."
+          description="State intent, not a vendor. The same generate() call routes to the right provider, falls back on failure, and can return a validated object — with usage and cost on every response."
         />
 
         <div className="mt-16 grid grid-cols-1 lg:grid-cols-2 gap-5">

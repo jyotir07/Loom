@@ -9,26 +9,27 @@ export interface CodeSample {
 export const codeSamples: CodeSample[] = [
   {
     id: "generate",
-    label: "generate()",
-    filename: "app.py",
+    label: "intelligent routing",
+    filename: "route.py",
     language: "python",
     code: `import loom
 
-result = loom.generate(
-    provider="openai",
-    modality="text",
-    model="gpt-4o-mini",
-    prompt="Summarize this transcript in five bullets.",
-)
+# State intent — Loom picks the provider and model, health-aware.
+result = loom.generate(router="cheapest", prompt="Summarize this transcript.")
 
 print(result["text"])
-print(result["cost"]["usd"])      # 0.0000038
-print(result["usage"]["total_tokens"])
+print(result["cost"]["usd"])          # 0.0000041
+print(result["_router"]["used"])      # "gemini:text:gemini-2.5-flash"
+
+# A provider order, a named strategy, or nothing at all:
+loom.generate(providers=["gemini", "openai"], prompt="...")
+loom.generate(router="fastest", prompt="...")
+loom.generate(prompt="...")           # fully automatic — balanced
 `,
   },
   {
     id: "async",
-    label: "async",
+    label: "sync + async",
     filename: "api.py",
     language: "python",
     code: `from fastapi import FastAPI
@@ -39,84 +40,72 @@ aclient = AsyncLoom.from_env()
 
 @app.get("/answer")
 async def answer(q: str):
-    result = await aclient.generate(
-        provider="openai",
-        modality="text",
-        model="gpt-4o-mini",
-        prompt=q,
-    )
+    # Same intent-based routing, fully async.
+    result = await aclient.generate(router="fastest", prompt=q)
     return {"text": result["text"], "cost": result["cost"]["usd"]}
 `,
   },
   {
-    id: "router",
-    label: "smart routing",
-    filename: "router.py",
+    id: "structured",
+    label: "structured outputs",
+    filename: "extract.py",
     language: "python",
-    code: `from loom import Loom, Router, Candidate
+    code: `from pydantic import BaseModel
+from loom import Loom
 
-router = Router(
-    candidates=[
-        ("openai",    "text", "gpt-4o-mini"),
-        Candidate("anthropic", "text", "claude-haiku-4-5"),
-        ("openai",    "text", "gpt-4o", {"temperature": 0.2}),
-    ],
-    validator=lambda r: len(r["text"]) > 40,
-)
-
-client = Loom.from_env()
-result = client.route(router, prompt="Explain quantum entanglement.")
-
-result["_router"]["used"]    # which model won
-result["_router"]["tried"]   # all attempted
-`,
-  },
-  {
-    id: "register",
-    label: "register provider",
-    filename: "setup.py",
-    language: "python",
-    code: `from loom import Catalog
-
-c = Catalog.from_yaml("models.yaml")
-
-# Register a new OpenAI-shape vendor in ~10 lines:
-c.register_openai_compatible(
-    key="newco",
-    label="NewCo AI",
-    base_url="https://api.newco.ai/v1",
-    api_key_env="NEWCO_API_KEY",
-)
-
-c.register_model(
-    provider="newco",
-    model_id="newco-large",
-    upstream_model="newco-large-2026-01",
-    input_cost_per_1m=2.50,
-    output_cost_per_1m=10.00,
-)
-`,
-  },
-  {
-    id: "batch",
-    label: "batch",
-    filename: "batch.py",
-    language: "python",
-    code: `from loom import Loom, BatchRequest
+class User(BaseModel):
+    name: str
+    age: int
 
 client = Loom.from_env()
 
-handle = client.submit_batch([
-    BatchRequest(provider="openai", modality="text",
-                 model="gpt-4o-mini",
-                 prompt="summarize row 1", custom_id="row-1"),
-    BatchRequest(provider="openai", modality="text",
-                 model="gpt-4o-mini",
-                 prompt="summarize row 2", custom_id="row-2"),
-])
+# Validated object out, provider-agnostic.  pip install loom[structured]
+user = client.generate(prompt="Extract the user from: ...", schema=User)
 
-print(handle.id, handle.status())
-results = handle.wait(poll_interval=60.0, timeout=24 * 3600)
+assert isinstance(user, User)
+print(user.name, user.age)
+`,
+  },
+  {
+    id: "compare",
+    label: "benchmark providers",
+    filename: "benchmark.py",
+    language: "python",
+    code: `from loom import Loom
+
+client = Loom.from_env()
+
+report = client.compare(
+    providers=["openai", "anthropic", "gemini"],
+    prompt="Explain quantum entanglement.",
+)
+
+for row in report:
+    print(row.provider, row.model, row.latency_ms, row.cost_usd)
+
+report.summary.cheapest.provider    # lowest cost row
+report.summary.fastest.provider     # lowest latency row
+`,
+  },
+  {
+    id: "fallback",
+    label: "automatic fallback",
+    filename: "resilient.py",
+    language: "python",
+    code: `from loom import Loom, FallbackPolicy
+
+client = Loom.from_env()
+
+# Survive an outage — walk the chain on retryable failures.
+result = client.generate(
+    prompt="Draft a launch announcement.",
+    router="balanced",
+    fallback=FallbackPolicy(retries=3,
+                            providers=["gemini", "openai", "anthropic"]),
+)
+
+result["_router"]["used"]      # provider that answered
+result["_router"]["tried"]     # every provider attempted
 `,
   },
 ];
