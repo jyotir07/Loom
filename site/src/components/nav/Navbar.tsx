@@ -10,6 +10,11 @@ const links = [
   { href: "/#architecture", label: "Architecture" },
   { href: "/docs", label: "Docs" },
   {
+    href: "https://pypi.org/project/loom-router/",
+    label: "PyPI",
+    external: true,
+  },
+  {
     href: "https://github.com/jyotir07/Loom",
     label: "GitHub",
     external: true,
