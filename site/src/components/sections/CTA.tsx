@@ -41,7 +41,7 @@ export function CTA() {
           className="mt-9 flex flex-wrap items-center justify-center gap-3"
         >
           <Link
-            href="https://github.com/jyotir07/Loom"
+            href="https://pypi.org/project/loom-router/"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 rounded-full bg-white text-ink-950 px-6 py-3 text-sm font-medium hover:bg-white/90 transition shadow-[0_0_60px_-10px_rgba(255,255,255,0.6)]"
@@ -65,10 +65,9 @@ export function CTA() {
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8, delay: 0.4 }}
-          className="mt-12 inline-block font-mono text-[12px] text-white/40 rounded-md border border-white/10 bg-black/40 px-4 py-2.5"
+          className="mt-12"
         >
-          <span className="text-white/30 select-none">$ </span>
-          pip install loom-router
+          <InstallCommand />
         </motion.div>
       </div>
     </section>
