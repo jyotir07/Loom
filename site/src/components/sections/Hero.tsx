@@ -45,11 +45,7 @@ export function Hero() {
             transition={{ duration: 0.7, delay: 0.15 }}
             className="mt-6 text-balance text-base md:text-lg text-white/65 max-w-xl leading-relaxed"
           >
-            Loom is an intelligent routing layer for LLMs. State intent —
-            cheapest, fastest, or just a prompt — and Loom picks the provider and
-            model, with automatic fallback, health-aware routing, structured
-            outputs, and cost tracking built in. Native SDKs preserved, never
-            flattened.
+            Loom sits between your app and every LLM provider. Tell it what matters most, and it handles routing, failovers, and provider selection automatically.
           </motion.p>
 
           <motion.div
