@@ -24,7 +24,7 @@ export function Hero() {
             className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-xs font-mono uppercase tracking-[0.18em] text-white/60"
           >
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse-soft" />
-            v1.0 · semver stable
+            v2.0 · intelligent routing
           </motion.div>
 
           <motion.h1
@@ -87,7 +87,7 @@ export function Hero() {
               <span className="h-1 w-1 rounded-full bg-violet-400" /> Sync + Async
             </span>
             <span className="flex items-center gap-2">
-              <span className="h-1 w-1 rounded-full bg-emerald-400" /> MIT
+              <span className="h-1 w-1 rounded-full bg-emerald-400" /> Apache-2.0
             </span>
           </motion.div>
         </div>
