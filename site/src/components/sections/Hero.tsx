@@ -65,7 +65,7 @@ export function Hero() {
               <ArrowRight className="h-3.5 w-3.5" />
             </Link>
             <Link
-              href="#dx"
+              href="/docs"
               className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.04] px-5 py-2.5 text-sm font-medium text-white hover:bg-white/[0.08] transition"
             >
               <BookOpen className="h-4 w-4" />
