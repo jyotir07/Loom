@@ -206,7 +206,7 @@ export function RoutingVisualizer() {
         className="absolute top-4 right-4 glass rounded-lg px-3 py-1.5 text-[10px] font-mono uppercase tracking-wider text-white/70"
       >
         <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-400 mr-2 animate-pulse-soft" />
-        router · cheap-first
+        router · health-aware
       </motion.div>
       <motion.div
         initial={{ opacity: 0, y: 8 }}
